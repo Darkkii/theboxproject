@@ -31,8 +31,11 @@
 *.out
 *.app
 
-# Project files
-.vscode/
+# Project build files
+**/.vscode/*
+**/bin/
+**/obj/
+**/[Bb]uild/
 cmake-build-debug/
 .DS_Store
 .idea
