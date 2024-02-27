@@ -60,6 +60,8 @@ pico_add_extra_outputs(${PROJECT_NAME})
 #        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.uf2 d: )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
+        "${PROJECT_BINARY_DIR}"
+        "${PROJECT_SOURCE_DIR}/classes"
         modbus
         mqtt
         uart
@@ -68,12 +70,16 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         paho.mqtt.embedded-c/MQTTClient/src
 )
 
+# Sub-Directories
+add_subdirectory(${PROJECT_SOURCE_DIR}/classes)
+
 # Link to pico_stdlib (gpio, time, etc. functions)
 target_link_libraries(${PROJECT_NAME} 
         pico_stdlib
         hardware_i2c
         hardware_gpio
         pico_cyw43_arch_lwip_poll
+        Classes
 )
 
 # Enable usb output, disable uart output
