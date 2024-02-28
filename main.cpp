@@ -29,37 +29,39 @@
 
 #define USE_MODBUS
 #define USE_MQTT
-#define USE_SSD1306
+// #define USE_SSD1306
 
 
 #ifdef USE_SSD1306
 static const uint8_t raspberry26x32[] =
-        {0x0, 0x0, 0xe, 0x7e, 0xfe, 0xff, 0xff, 0xff,
-         0xff, 0xff, 0xfe, 0xfe, 0xfc, 0xf8, 0xfc, 0xfe,
-         0xfe, 0xff, 0xff,0xff, 0xff, 0xff, 0xfe, 0x7e,
-         0x1e, 0x0, 0x0, 0x0, 0x80, 0xe0, 0xf8, 0xfd,
-         0xff, 0xff, 0xff, 0xff, 0xff, 0xff,0xff, 0xff,
-         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfd,
-         0xf8, 0xe0, 0x80, 0x0, 0x0, 0x1e, 0x7f, 0xff,
-         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-         0xff, 0xff, 0xff, 0xff, 0x7f, 0x1e, 0x0, 0x0,
-         0x0, 0x3, 0x7, 0xf, 0x1f, 0x1f, 0x3f, 0x3f,
-         0x7f, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x7f, 0x3f,
-         0x3f, 0x1f, 0x1f, 0xf, 0x7, 0x3, 0x0, 0x0 };
+{ 0x0, 0x0, 0xe, 0x7e, 0xfe, 0xff, 0xff, 0xff,
+ 0xff, 0xff, 0xfe, 0xfe, 0xfc, 0xf8, 0xfc, 0xfe,
+ 0xfe, 0xff, 0xff,0xff, 0xff, 0xff, 0xfe, 0x7e,
+ 0x1e, 0x0, 0x0, 0x0, 0x80, 0xe0, 0xf8, 0xfd,
+ 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,0xff, 0xff,
+ 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfd,
+ 0xf8, 0xe0, 0x80, 0x0, 0x0, 0x1e, 0x7f, 0xff,
+ 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+ 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+ 0xff, 0xff, 0xff, 0xff, 0x7f, 0x1e, 0x0, 0x0,
+ 0x0, 0x3, 0x7, 0xf, 0x1f, 0x1f, 0x3f, 0x3f,
+ 0x7f, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x7f, 0x3f,
+ 0x3f, 0x1f, 0x1f, 0xf, 0x7, 0x3, 0x0, 0x0 };
 #endif
 
-void messageArrived(MQTT::MessageData &md) {
+void messageArrived(MQTT::MessageData &md)
+{
     MQTT::Message &message = md.message;
 
     printf("Message arrived: qos %d, retained %d, dup %d, packetid %d\n",
            message.qos, message.retained, message.dup, message.id);
-    printf("Payload %s\n", (char *) message.payload);
+    printf("Payload %s\n", (char *)message.payload);
 }
 
 static const char *topic = "test-topic";
 
-int main() {
+int main()
+{
 
     const uint led_pin = 22;
     const uint button = 9;
@@ -92,7 +94,7 @@ int main() {
     display.line(60, 60, 120, 5, 1);
     display.show();
 #if 1
-    for(int i = 0; i < 128; ++i) {
+    for (int i = 0; i < 128; ++i) {
         sleep_ms(50);
         display.scroll(1, 0);
         display.show();
@@ -117,7 +119,7 @@ int main() {
     printf("MQTT connecting\n");
     MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
     data.MQTTVersion = 3;
-    data.clientID.cstring = (char *) "PicoW-sample";
+    data.clientID.cstring = (char *)"PicoW-sample";
     rc = client.connect(data);
     if (rc != 0) {
         printf("rc from MQTT connect is %d\n", rc);
@@ -140,8 +142,8 @@ int main() {
 #endif
 
 #ifdef USE_MODBUS
-    auto uart{std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE)};
-    auto rtu_client{std::make_shared<ModbusClient>(uart)};
+    auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
+    auto rtu_client{ std::make_shared<ModbusClient>(uart) };
     ModbusRegister rh(rtu_client, 241, 256);
     auto modbus_poll = make_timeout_time_ms(3000);
 #endif
@@ -170,11 +172,11 @@ int main() {
             MQTT::Message message;
             message.retained = false;
             message.dup = false;
-            message.payload = (void *) buf;
+            message.payload = (void *)buf;
             switch (mqtt_qos) {
                 case 0:
                     // Send and receive QoS 0 message
-                    sprintf(buf, "Msg nr: %s QoS 0 message", ++msg_count);
+                    sprintf(buf, "Msg nr: %d QoS 0 message", ++msg_count);
                     printf("%s\n", buf);
                     message.qos = MQTT::QOS0;
                     message.payloadlen = strlen(buf) + 1;
@@ -184,7 +186,7 @@ int main() {
                     break;
                 case 1:
                     // Send and receive QoS 1 message
-                    sprintf(buf, "Msg nr: %s QoS 1 message", ++msg_count);
+                    sprintf(buf, "Msg nr: %d QoS 1 message", ++msg_count);
                     printf("%s\n", buf);
                     message.qos = MQTT::QOS1;
                     message.payloadlen = strlen(buf) + 1;
@@ -193,16 +195,16 @@ int main() {
                     ++mqtt_qos;
                     break;
 #if MQTTCLIENT_QOS2
-                    case 2:
-                        // Send and receive QoS 2 message
-                        sprintf(buf, "Msg nr: %s QoS 2 message", ++msg_count);
-                        printf("%s\n", buf);
-                        message.qos = MQTT::QOS2;
-                        message.payloadlen = strlen(buf) + 1;
-                        rc = client.publish(topic, message);
-                        printf("Publish rc=%d\n", rc);
-                        ++mqtt_qos;
-                        break;
+                case 2:
+                    // Send and receive QoS 2 message
+                    sprintf(buf, "Msg nr: %d QoS 2 message", ++msg_count);
+                    printf("%s\n", buf);
+                    message.qos = MQTT::QOS2;
+                    message.payloadlen = strlen(buf) + 1;
+                    rc = client.publish(topic, message);
+                    printf("Publish rc=%d\n", rc);
+                    ++mqtt_qos;
+                    break;
 #endif
                 default:
                     mqtt_qos = 0;
