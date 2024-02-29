@@ -33,22 +33,22 @@ add_executable(${PROJECT_NAME}
         # uart/PicoUart.h
         # uart/RingBuffer.cpp
         # uart/RingBuffer.h
-        mqtt/Countdown.cpp
-        mqtt/Countdown.h
-        mqtt/IPStack.cpp
-        mqtt/IPStack.h
-        mqtt/lwipopts.h
+        # mqtt/Countdown.cpp
+        # mqtt/Countdown.h
+        # mqtt/IPStack.cpp
+        # mqtt/IPStack.h
+        # mqtt/lwipopts.h
         # modbus/ModbusRegister.cpp
         # modbus/ModbusRegister.h
         # modbus/ModbusClient.cpp
         # modbus/ModbusClient.h
         ${MQTT_SOURCES}
-        display/framebuf.cpp
-        display/framebuf.h
-        display/mono_vlsb.cpp
-        display/mono_vlsb.h
-        display/ssd1306.cpp
-        display/ssd1306.h
+        # display/framebuf.cpp
+        # display/framebuf.h
+        # display/mono_vlsb.cpp
+        # display/mono_vlsb.h
+        # display/ssd1306.cpp
+        # display/ssd1306.h
 )
 
 # Create map/bin/hex/uf2 files
@@ -59,37 +59,36 @@ pico_add_extra_outputs(${PROJECT_NAME})
 #        POST_BUILD
 #        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.uf2 d: )
 
-# Private include directories
+# Included directories
 target_include_directories(${PROJECT_NAME} PRIVATE
         "${PROJECT_BINARY_DIR}"
         #classes
         # modbus
-        mqtt
+        # mqtt
         # uart
-        display
+        # display
         paho.mqtt.embedded-c/MQTTPacket/src
         paho.mqtt.embedded-c/MQTTClient/src
 )
 
-# Public include directories
-# target_include_directories(${PROJECT_NAME} PUBLIC
-#         modbus
-# )
-
 # Sub-directories
-add_subdirectory(uart)
+add_subdirectory(display)
 add_subdirectory(modbus)
+add_subdirectory(mqtt)
+add_subdirectory(uart)
 add_subdirectory(classes)
 
 # Link to pico_stdlib (gpio, time, etc. functions)
 target_link_libraries(${PROJECT_NAME} 
-        pico_stdlib
-        hardware_i2c
-        hardware_gpio
-        pico_cyw43_arch_lwip_poll
-        Uart
-        Modbus
-        Classes
+        # pico_stdlib
+        # hardware_i2c
+        # hardware_gpio
+        # pico_cyw43_arch_lwip_poll
+        display
+        modbus
+        mqtt
+        uart
+        classes
 )
 
 # Enable usb output, disable uart output
