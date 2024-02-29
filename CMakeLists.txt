@@ -71,11 +71,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         paho.mqtt.embedded-c/MQTTClient/src
 )
 
-# Sub-directories
+# Subdirectories
 add_subdirectory(display)
 add_subdirectory(modbus)
 add_subdirectory(mqtt)
 add_subdirectory(uart)
+add_subdirectory(sensors)
 add_subdirectory(classes)
 
 # Link to pico_stdlib (gpio, time, etc. functions)
