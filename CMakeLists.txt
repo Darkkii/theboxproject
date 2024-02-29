@@ -27,21 +27,21 @@ file(GLOB MQTT_SOURCES "paho.mqtt.embedded-c/MQTTPacket/src/*.c")
 # Tell CMake where to find the executable source file
 add_executable(${PROJECT_NAME}
         main.cpp
-        modbus/nanomodbus.h
-        modbus/nanomodbus.c
-        uart/PicoUart.cpp
-        uart/PicoUart.h
-        uart/RingBuffer.cpp
-        uart/RingBuffer.h
+        # modbus/nanomodbus.h
+        # modbus/nanomodbus.c
+        # uart/PicoUart.cpp
+        # uart/PicoUart.h
+        # uart/RingBuffer.cpp
+        # uart/RingBuffer.h
         mqtt/Countdown.cpp
         mqtt/Countdown.h
         mqtt/IPStack.cpp
         mqtt/IPStack.h
         mqtt/lwipopts.h
-        modbus/ModbusRegister.cpp
-        modbus/ModbusRegister.h
-        modbus/ModbusClient.cpp
-        modbus/ModbusClient.h
+        # modbus/ModbusRegister.cpp
+        # modbus/ModbusRegister.h
+        # modbus/ModbusClient.cpp
+        # modbus/ModbusClient.h
         ${MQTT_SOURCES}
         display/framebuf.cpp
         display/framebuf.h
@@ -59,19 +59,27 @@ pico_add_extra_outputs(${PROJECT_NAME})
 #        POST_BUILD
 #        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.uf2 d: )
 
+# Private include directories
 target_include_directories(${PROJECT_NAME} PRIVATE
         "${PROJECT_BINARY_DIR}"
-        "${PROJECT_SOURCE_DIR}/classes"
-        modbus
+        #classes
+        # modbus
         mqtt
-        uart
+        # uart
         display
         paho.mqtt.embedded-c/MQTTPacket/src
         paho.mqtt.embedded-c/MQTTClient/src
 )
 
-# Sub-Directories
-add_subdirectory(${PROJECT_SOURCE_DIR}/classes)
+# Public include directories
+# target_include_directories(${PROJECT_NAME} PUBLIC
+#         modbus
+# )
+
+# Sub-directories
+add_subdirectory(uart)
+add_subdirectory(modbus)
+add_subdirectory(classes)
 
 # Link to pico_stdlib (gpio, time, etc. functions)
 target_link_libraries(${PROJECT_NAME} 
@@ -79,6 +87,8 @@ target_link_libraries(${PROJECT_NAME}
         hardware_i2c
         hardware_gpio
         pico_cyw43_arch_lwip_poll
+        Uart
+        Modbus
         Classes
 )
 

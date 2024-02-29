@@ -154,7 +154,7 @@ int main()
             gpio_put(led_pin, !gpio_get(led_pin)); // toggle  led
             modbus_poll = delayed_by_ms(modbus_poll, 3000);
             printf("RH=%5.1f%%\n", rh.read() / 10.0);
-        }
+    }
 #endif
 #ifdef USE_MQTT
         if (time_reached(mqtt_send)) {
@@ -215,7 +215,7 @@ int main()
         cyw43_arch_poll(); // obsolete? - see below
         client.yield(100); // socket that client uses calls cyw43_arch_poll()
 #endif
-    }
+}
 
 
 }
