@@ -12,7 +12,6 @@ typedef enum RotSW_enum {
     PRESS,
     CLOCKWISE,
     COUNTER_CLOCKWISE,
-    WEIRD
 } RotSW_event;
 
 class RotSW {
