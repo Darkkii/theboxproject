@@ -1,11 +1,11 @@
 # Library name
-set(LIBRARY_NAME classes)
+set(LIBRARY_NAME display)
 
 # Library sources -- Add each .cpp or .c file from the folder here
 add_library(${LIBRARY_NAME}
-            ExampleClass.cpp
-        RotSW.cpp
-)
+        framebuf.cpp
+        mono_vlsb.cpp
+        ssd1306.cpp)
 
 # Include directories -- No need to edit
 target_include_directories(${LIBRARY_NAME} INTERFACE
@@ -14,5 +14,5 @@ target_include_directories(${LIBRARY_NAME} INTERFACE
 
 # Link Libraries -- Add each library that the current module needs to this list
 target_link_libraries(${LIBRARY_NAME}
-        pico_stdlib
+        hardware_i2c
 )
