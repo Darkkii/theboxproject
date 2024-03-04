@@ -1,4 +1,5 @@
 #include "HMP60.h"
+#include "pico/time.h"
 
 using namespace std;
 
@@ -14,9 +15,9 @@ HMP60::HMP60(shared_ptr<ModbusClient> modbus)
     mErrorCodeRegisterHigh{ modbus, mModbusAddress, ERROR_CODE_REGISTER_HIGH }
 {}
 
-float HMP60::getRelativeHumidity() { return mRelativeHumidity; };
+float HMP60::getRelativeHumidity() { return mRelativeHumidity.f; };
 
-float HMP60::getTemperature() { return mTemperature; }
+float HMP60::getTemperature() { return mTemperature.f; }
 
 uint32_t HMP60::getErrorStatus()
 {
@@ -32,8 +33,8 @@ uint32_t HMP60::getErrorStatus()
 }
 void HMP60::update()
 {
-    mRelativeHumidity = mHumidityRegisterLow.read() / 10;
-    // mRelativeHumidity += mHumidityRegisterHigh.read() << 16;
-    mTemperature = mTemperatureRegisterLow.read() / 10;
-    // mTemperature += mTemperatureRegisterHigh.read() << 16;
+    mRelativeHumidity.u = mHumidityRegisterLow.read() | (mHumidityRegisterHigh.read() << 16);
+    sleep_ms(5);
+    mTemperature.u = mTemperatureRegisterLow.read() | (mTemperatureRegisterHigh.read() << 16);
+    sleep_ms(5);
 }
