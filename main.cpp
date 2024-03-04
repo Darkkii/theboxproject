@@ -14,6 +14,7 @@
 #include "ssd1306.h"
 #include "GMP252.h"
 #include "HMP60.h"
+#include "MIO12V.h"
 
 // We are using pins 0 and 1, but see the GPIO function select table in the
 // datasheet for information on which other pins can be used.
@@ -34,7 +35,8 @@
 // #define USE_MODBUS
 // #define USE_MQTT
 // #define USE_SSD1306
-#define TEST_SENSORS
+// #define TEST_SENSORS
+#define TEST_FAN_MOTOR
 
 
 #ifdef USE_SSD1306
@@ -84,6 +86,10 @@ int main()
     stdio_init_all();
 
     printf("\nBoot\n");
+    // gmp252.update();
+    // gmp252.update();
+    // hmp60.update();
+
 #ifdef USE_SSD1306
     // I2C is "open drain",
     // pull ups to keep signal high when no data is being sent
@@ -157,9 +163,19 @@ int main()
 #ifdef TEST_SENSORS
     auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
     auto rtu_client{ std::make_shared<ModbusClient>(uart) };
+    auto modbus_poll = make_timeout_time_ms(3000);
     GMP252 gmp252{ rtu_client };
     HMP60 hmp60{ rtu_client };
-    auto modbus_poll = make_timeout_time_ms(3000);
+#endif
+
+#ifdef TEST_FAN_MOTOR
+    auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
+    auto rtu_client{ std::make_shared<ModbusClient>(uart) };
+
+    MIO12V fanController(rtu_client);
+    sleep_ms(100);
+    fanController.setFanSpeed(0);
+    printf("%u\n", fanController.getFanSpeed());
 #endif
 
     while (true) {
@@ -242,7 +258,5 @@ int main()
         }
 #endif
     }
-
-
 }
 
