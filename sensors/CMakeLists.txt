@@ -3,7 +3,8 @@ set(LIBRARY_NAME sensors)
 
 # Library sources -- Add each .cpp or .c file from the folder here
 add_library(${LIBRARY_NAME}
-            GMP252.cpp)
+            GMP252.cpp
+            HMP60.cpp)
 
 # Include directories -- No need to edit
 target_include_directories(${LIBRARY_NAME} INTERFACE
