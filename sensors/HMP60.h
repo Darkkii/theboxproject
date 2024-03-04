@@ -10,9 +10,9 @@ private:
     const int mModbusAddress = 241;
     enum modbusRegisterAddress
     {
-        RH_REGISTER_LOW = 0x0100,   // 0x0000 for 32bit, 0x0100 for 16bit access.
+        RH_REGISTER_LOW = 0x0100,   // 0x0000 for 32bit, 0x0100 for 16bit values.
         RH_REGISTER_HIGH,
-        TEMPERATURE_REGISTER_LOW = 0x0002,
+        TEMPERATURE_REGISTER_LOW = 0x0101, // 0x0002 for 32bit, 0x0101 for 16bit values.
         TEMPERATURE_REGISTER_HIGH,
         ERROR_STATUS_REGISTER = 0x0200,
         ERROR_CODE_REGISTER_LOW = 0x0203,

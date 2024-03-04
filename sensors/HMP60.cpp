@@ -34,6 +34,6 @@ void HMP60::update()
 {
     mRelativeHumidity = mHumidityRegisterLow.read() / 10;
     // mRelativeHumidity += mHumidityRegisterHigh.read() << 16;
-    // mTemperature = mTemperatureRegisterLow.read();
+    mTemperature = mTemperatureRegisterLow.read() / 10;
     // mTemperature += mTemperatureRegisterHigh.read() << 16;
 }
