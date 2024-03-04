@@ -12,6 +12,7 @@
 #include "ModbusClient.h"
 #include "ModbusRegister.h"
 #include "ssd1306.h"
+#include "GMP252.h"
 #include "HMP60.h"
 
 // We are using pins 0 and 1, but see the GPIO function select table in the
@@ -30,8 +31,10 @@
 
 // #define USE_MODBUS
 // #define USE_MQTT
+// #define USE_MODBUS
+// #define USE_MQTT
 // #define USE_SSD1306
-#define TEST_HMP60
+#define TEST_SENSORS
 
 
 #ifdef USE_SSD1306
@@ -151,9 +154,10 @@ int main()
     auto modbus_poll = make_timeout_time_ms(3000);
 #endif
 
-#ifdef TEST_HMP60
+#ifdef TEST_SENSORS
     auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
     auto rtu_client{ std::make_shared<ModbusClient>(uart) };
+    GMP252 gmp252{ rtu_client };
     HMP60 hmp60{ rtu_client };
     auto modbus_poll = make_timeout_time_ms(3000);
 #endif
@@ -226,14 +230,18 @@ int main()
         client.yield(100); // socket that client uses calls cyw43_arch_poll()
 #endif
 
-#ifdef TEST_HMP60
+#ifdef TEST_SENSORS
         if (time_reached(modbus_poll)) {
             gpio_put(led_pin, !gpio_get(led_pin)); // toggle  led
-            hmp60.update();
+            gmp252.update();
             modbus_poll = delayed_by_ms(modbus_poll, 3000);
-            printf("%f\n", hmp60.getRelativeHumidity());
-            // printf("%f\n", hmp60.getTemperature());
+            printf("CO2: %f\n", gmp252.getCO2());
+            printf("RH: %f\n", hmp60.getRelativeHumidity());
+            // printf("Temp: %f\n", hmp60.getTemperature());
         }
 #endif
     }
+
+
 }
+
