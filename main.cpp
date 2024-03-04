@@ -12,6 +12,7 @@
 #include "ModbusClient.h"
 #include "ModbusRegister.h"
 #include "ssd1306.h"
+#include "HMP60.h"
 
 // We are using pins 0 and 1, but see the GPIO function select table in the
 // datasheet for information on which other pins can be used.
@@ -27,9 +28,10 @@
 
 #define BAUD_RATE 9600
 
-#define USE_MODBUS
-#define USE_MQTT
+// #define USE_MODBUS
+// #define USE_MQTT
 // #define USE_SSD1306
+#define TEST_HMP60
 
 
 #ifdef USE_SSD1306
@@ -49,6 +51,7 @@ static const uint8_t raspberry26x32[] =
  0x3f, 0x1f, 0x1f, 0xf, 0x7, 0x3, 0x0, 0x0 };
 #endif
 
+#ifdef USE_MQTT
 void messageArrived(MQTT::MessageData &md)
 {
     MQTT::Message &message = md.message;
@@ -59,10 +62,10 @@ void messageArrived(MQTT::MessageData &md)
 }
 
 static const char *topic = "test-topic";
+#endif
 
 int main()
 {
-
     const uint led_pin = 22;
     const uint button = 9;
 
@@ -148,6 +151,13 @@ int main()
     auto modbus_poll = make_timeout_time_ms(3000);
 #endif
 
+#ifdef TEST_HMP60
+    auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
+    auto rtu_client{ std::make_shared<ModbusClient>(uart) };
+    HMP60 hmp60{ rtu_client };
+    auto modbus_poll = make_timeout_time_ms(3000);
+#endif
+
     while (true) {
 #ifdef USE_MODBUS
         if (time_reached(modbus_poll)) {
@@ -215,8 +225,15 @@ int main()
         cyw43_arch_poll(); // obsolete? - see below
         client.yield(100); // socket that client uses calls cyw43_arch_poll()
 #endif
+
+#ifdef TEST_HMP60
+        if (time_reached(modbus_poll)) {
+            gpio_put(led_pin, !gpio_get(led_pin)); // toggle  led
+            hmp60.update();
+            modbus_poll = delayed_by_ms(modbus_poll, 3000);
+            printf("%f\n", hmp60.getRelativeHumidity());
+            // printf("%f\n", hmp60.getTemperature());
+        }
+#endif
     }
-
-
 }
-
