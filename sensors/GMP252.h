@@ -1,7 +1,6 @@
 #ifndef GMP252_H
 #define GMP252_H
 
-// #include <memory>
 #include "ModbusClient.h"
 #include "ModbusRegister.h"
 
@@ -10,8 +9,10 @@
 // Holds wire addresses for modbus registers.
 enum modbusRegisterAddress
 {
-    CO2_REGISTER = 0x0000,
-    TEMPERATURE_REGISTER = 0x0004,
+    CO2_REGISTER_LOW = 0x0000,
+    CO2_REGISTER_HIGH,
+    TEMPERATURE_REGISTER_LOW = 0x0004,
+    TEMPERATURE_REGISTER_HIGH,
     DEVICE_STATUS_REGISTER = 0x0800,
     CO2_STATUS_REGISTER
 };
@@ -19,13 +20,14 @@ enum modbusRegisterAddress
 class GMP252
 {
 private:
-    // float mCO2;
-    // float mTemperature;
-    ModbusRegister mCO2Register;
-    ModbusRegister mTemperatureRegister;
+    float mCO2;
+    float mTemperature;
+    ModbusRegister mCO2RegisterLow;
+    ModbusRegister mCO2RegisterHigh;
+    ModbusRegister mTemperatureRegisterLow;
+    ModbusRegister mTemperatureRegisterHigh;
     ModbusRegister mDeviceStatusRegister;
     ModbusRegister mCO2StatusRegister;
-    // std::shared_ptr<ModbusClient> mModbus;
 
 public:
     GMP252(std::shared_ptr<ModbusClient> modbus);
@@ -34,7 +36,7 @@ public:
     float getTemperature();
     uint16_t getDeviceStatus();
     uint16_t getCO2Status();
-    // void update();
+    void update();
 };
 
 #endif /* GMP252_H */
