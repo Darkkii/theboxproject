@@ -4,24 +4,21 @@
 #include "ModbusClient.h"
 #include "ModbusRegister.h"
 
-#define MODBUS_ADDRESS 240
-
-// Holds wire addresses for modbus registers.
-enum modbusRegisterAddress
-{
-    CO2_REGISTER_LOW = 0x0000,
-    CO2_REGISTER_HIGH,
-    TEMPERATURE_REGISTER_LOW = 0x0004,
-    TEMPERATURE_REGISTER_HIGH,
-    DEVICE_STATUS_REGISTER = 0x0800,
-    CO2_STATUS_REGISTER
-};
-
 class GMP252
 {
 private:
+    const int mModbusAddress = 240;
     float mCO2;
     float mTemperature;
+    enum modbusRegisterAddress
+    {
+        CO2_REGISTER_LOW = 0x0100,
+        CO2_REGISTER_HIGH,
+        TEMPERATURE_REGISTER_LOW = 0x0004,
+        TEMPERATURE_REGISTER_HIGH,
+        DEVICE_STATUS_REGISTER = 0x0800,
+        CO2_STATUS_REGISTER
+    };
     ModbusRegister mCO2RegisterLow;
     ModbusRegister mCO2RegisterHigh;
     ModbusRegister mTemperatureRegisterLow;

@@ -3,15 +3,15 @@
 using namespace std;
 
 GMP252::GMP252(shared_ptr<ModbusClient> modbus) :
-    mCO2RegisterLow{ modbus, MODBUS_ADDRESS, CO2_REGISTER_LOW },
-    mCO2RegisterHigh{ modbus, MODBUS_ADDRESS, CO2_REGISTER_HIGH },
-    mTemperatureRegisterLow{ modbus, MODBUS_ADDRESS, TEMPERATURE_REGISTER_LOW },
-    mTemperatureRegisterHigh{ modbus, MODBUS_ADDRESS, TEMPERATURE_REGISTER_HIGH },
-    mDeviceStatusRegister{ modbus, MODBUS_ADDRESS, DEVICE_STATUS_REGISTER },
-    mCO2StatusRegister{ modbus, MODBUS_ADDRESS, CO2_STATUS_REGISTER }
-{
-    this->update();
-}
+    mCO2{ 0 },
+    mTemperature{ 0 },
+    mCO2RegisterLow{ modbus, mModbusAddress, CO2_REGISTER_LOW },
+    mCO2RegisterHigh{ modbus, mModbusAddress, CO2_REGISTER_HIGH },
+    mTemperatureRegisterLow{ modbus, mModbusAddress, TEMPERATURE_REGISTER_LOW },
+    mTemperatureRegisterHigh{ modbus, mModbusAddress, TEMPERATURE_REGISTER_HIGH },
+    mDeviceStatusRegister{ modbus, mModbusAddress, DEVICE_STATUS_REGISTER },
+    mCO2StatusRegister{ modbus, mModbusAddress, CO2_STATUS_REGISTER }
+{}
 
 // Returns CO2 value in PPM.
 float GMP252::getCO2()
@@ -40,7 +40,7 @@ uint16_t GMP252::getCO2Status()
 void GMP252::update()
 {
     mCO2 = mCO2RegisterLow.read();
-    mCO2 = mCO2RegisterHigh.read() << 16;
-    mTemperature = mTemperatureRegisterLow.read();
-    mTemperature = mTemperatureRegisterHigh.read() << 16;
+    // mCO2 += mCO2RegisterHigh.read() << 16;
+    // mTemperature = mTemperatureRegisterLow.read();
+    // mTemperature += mTemperatureRegisterHigh.read() << 16;
 }
