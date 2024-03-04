@@ -234,10 +234,11 @@ int main()
         if (time_reached(modbus_poll)) {
             gpio_put(led_pin, !gpio_get(led_pin)); // toggle  led
             gmp252.update();
+            hmp60.update();
             modbus_poll = delayed_by_ms(modbus_poll, 3000);
-            printf("CO2: %f\n", gmp252.getCO2());
-            printf("RH: %f\n", hmp60.getRelativeHumidity());
-            // printf("Temp: %f\n", hmp60.getTemperature());
+            printf("CO2: %.0f\n", gmp252.getCO2());
+            printf("RH: %.1f\n", hmp60.getRelativeHumidity());
+            printf("Temp: %.1f\n", hmp60.getTemperature());
         }
 #endif
     }
