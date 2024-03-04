@@ -90,6 +90,7 @@ target_link_libraries(${PROJECT_NAME}
         mqtt
         uart
         classes
+        sensors
 )
 
 # Enable usb output, disable uart output
