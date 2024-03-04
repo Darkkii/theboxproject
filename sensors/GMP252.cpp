@@ -1,4 +1,5 @@
 #include "GMP252.h"
+#include "pico/time.h"
 
 using namespace std;
 
@@ -14,33 +15,22 @@ GMP252::GMP252(shared_ptr<ModbusClient> modbus) :
 {}
 
 // Returns CO2 value in PPM.
-float GMP252::getCO2()
-{
-    return mCO2;
-}
+float GMP252::getCO2() { return mCO2.f; }
 
 // Returns temperature value in C.
-float GMP252::getTemperature()
-{
-    return mTemperature;
-}
+float GMP252::getTemperature() { return mTemperature.f; }
 
 // Returns status of the device.
-uint16_t GMP252::getDeviceStatus()
-{
-    return mDeviceStatusRegister.read();
-}
+uint16_t GMP252::getDeviceStatus() { return mDeviceStatusRegister.read(); }
 
 // Returns status of the CO2 measuring.
-uint16_t GMP252::getCO2Status()
-{
-    return mCO2StatusRegister.read();
-}
+uint16_t GMP252::getCO2Status() { return mCO2StatusRegister.read(); }
 
+// Update sensor values.
 void GMP252::update()
 {
-    mCO2 = mCO2RegisterLow.read();
-    // mCO2 += mCO2RegisterHigh.read() << 16;
-    // mTemperature = mTemperatureRegisterLow.read();
-    // mTemperature += mTemperatureRegisterHigh.read() << 16;
+    mCO2.u = mCO2RegisterLow.read() | (mCO2RegisterHigh.read() << 16);
+    sleep_ms(5);
+    mTemperature.u = mTemperatureRegisterLow.read() | (mTemperatureRegisterHigh.read() << 16);
+    sleep_ms(5);
 }
