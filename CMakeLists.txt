@@ -71,15 +71,16 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         paho.mqtt.embedded-c/MQTTClient/src
 )
 
-# Sub-directories
+# Subdirectories
 add_subdirectory(display)
 add_subdirectory(modbus)
 add_subdirectory(mqtt)
 add_subdirectory(uart)
+add_subdirectory(sensors)
 add_subdirectory(classes)
 
 # Link to pico_stdlib (gpio, time, etc. functions)
-target_link_libraries(${PROJECT_NAME} 
+target_link_libraries(${PROJECT_NAME} PRIVATE
         # pico_stdlib
         # hardware_i2c
         # hardware_gpio
@@ -89,6 +90,7 @@ target_link_libraries(${PROJECT_NAME}
         mqtt
         uart
         classes
+        sensors
 )
 
 # Enable usb output, disable uart output

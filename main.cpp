@@ -12,6 +12,9 @@
 #include "ModbusClient.h"
 #include "ModbusRegister.h"
 #include "ssd1306.h"
+#include "GMP252.h"
+#include "HMP60.h"
+#include "MIO12V.h"
 
 // We are using pins 0 and 1, but see the GPIO function select table in the
 // datasheet for information on which other pins can be used.
@@ -27,9 +30,13 @@
 
 #define BAUD_RATE 9600
 
-#define USE_MODBUS
-#define USE_MQTT
+// #define USE_MODBUS
+// #define USE_MQTT
+// #define USE_MODBUS
+// #define USE_MQTT
 // #define USE_SSD1306
+#define TEST_SENSORS
+// #define TEST_FAN_MOTOR
 
 
 #ifdef USE_SSD1306
@@ -49,6 +56,7 @@ static const uint8_t raspberry26x32[] =
  0x3f, 0x1f, 0x1f, 0xf, 0x7, 0x3, 0x0, 0x0 };
 #endif
 
+#ifdef USE_MQTT
 void messageArrived(MQTT::MessageData &md)
 {
     MQTT::Message &message = md.message;
@@ -59,9 +67,23 @@ void messageArrived(MQTT::MessageData &md)
 }
 
 static const char *topic = "test-topic";
+#endif
 
 int main()
 {
+#ifdef TEST_SENSORS
+    auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
+    auto rtu_client{ std::make_shared<ModbusClient>(uart) };
+    auto modbus_poll = make_timeout_time_ms(3000);
+    GMP252 gmp252{ rtu_client };
+    HMP60 hmp60{ rtu_client };
+    gmp252.update();
+    sleep_ms(5);
+    gmp252.update();
+    sleep_ms(5);
+    hmp60.update();
+    sleep_ms(5);
+#endif
 
     const uint led_pin = 22;
     const uint button = 9;
@@ -78,6 +100,7 @@ int main()
     stdio_init_all();
 
     printf("\nBoot\n");
+
 #ifdef USE_SSD1306
     // I2C is "open drain",
     // pull ups to keep signal high when no data is being sent
@@ -108,7 +131,7 @@ int main()
 
 #ifdef USE_MQTT
     //IPStack ipstack("SSID", "PASSWORD"); // example
-    IPStack ipstack("KME662", "SmartIot"); // example
+    IPStack ipstack("SmartIotMQTT", "SmartIot"); // example
     auto client = MQTT::Client<IPStack, Countdown>(ipstack);
 
     int rc = ipstack.connect("192.168.1.10", 1883);
@@ -146,6 +169,16 @@ int main()
     auto rtu_client{ std::make_shared<ModbusClient>(uart) };
     ModbusRegister rh(rtu_client, 241, 256);
     auto modbus_poll = make_timeout_time_ms(3000);
+#endif
+
+#ifdef TEST_FAN_MOTOR
+    auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
+    auto rtu_client{ std::make_shared<ModbusClient>(uart) };
+
+    MIO12V fanController(rtu_client);
+    sleep_ms(100);
+    fanController.setFanSpeed(0);
+    printf("%u\n", fanController.getFanSpeed());
 #endif
 
     while (true) {
@@ -215,8 +248,22 @@ int main()
         cyw43_arch_poll(); // obsolete? - see below
         client.yield(100); // socket that client uses calls cyw43_arch_poll()
 #endif
+
+#ifdef TEST_SENSORS
+        if (time_reached(modbus_poll)) {
+            gpio_put(led_pin, !gpio_get(led_pin)); // toggle  led
+            modbus_poll = delayed_by_ms(modbus_poll, 3000);
+            printf("CO2: %.0f\n", gmp252.getCO2());
+            printf("Temp (GMP252): %.1f\n", gmp252.getTemperature());
+            printf("RH: %.1f\n", hmp60.getRelativeHumidity());
+            printf("Temp (HMP60): %.1f\n", hmp60.getTemperature());
+            printf("----------------\n");
+            gmp252.update();
+            sleep_ms(5);
+            hmp60.update();
+            sleep_ms(5);
+        }
+#endif
     }
-
-
 }
 

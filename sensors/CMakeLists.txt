@@ -1,11 +1,10 @@
 # Library name
-set(LIBRARY_NAME display)
+set(LIBRARY_NAME sensors)
 
 # Library sources -- Add each .cpp or .c file from the folder here
 add_library(${LIBRARY_NAME}
-        framebuf.cpp
-        mono_vlsb.cpp
-        ssd1306.cpp)
+            GMP252.cpp
+            HMP60.cpp)
 
 # Include directories -- No need to edit
 target_include_directories(${LIBRARY_NAME} INTERFACE
@@ -13,6 +12,7 @@ target_include_directories(${LIBRARY_NAME} INTERFACE
 )
 
 # Link Libraries -- Add each library that the current module needs to this list
-target_link_libraries(${LIBRARY_NAME} PUBLIC
-        hardware_i2c
+target_link_libraries(${LIBRARY_NAME} PRIVATE
+        pico_stdlib
+        modbus
 )
