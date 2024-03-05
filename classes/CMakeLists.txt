@@ -4,7 +4,8 @@ set(LIBRARY_NAME classes)
 # Library sources -- Add each .cpp or .c file from the folder here
 add_library(${LIBRARY_NAME}
         ExampleClass.cpp
-        MIO12V.cpp)
+        MIO12V.cpp
+        PicoSW.cpp)
 
 # Include directories -- No need to edit
 target_include_directories(${LIBRARY_NAME} INTERFACE
@@ -14,4 +15,5 @@ target_include_directories(${LIBRARY_NAME} INTERFACE
 # Link Libraries -- Add each library that the current module needs to this list
 target_link_libraries(${LIBRARY_NAME} PRIVATE
         modbus
+        pico_stdlib
 )
