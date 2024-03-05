@@ -3,8 +3,8 @@
 
 using namespace std;
 
-HMP60::HMP60(shared_ptr<ModbusClient> modbus)
-    : mRelativeHumidity{ 0 },
+HMP60::HMP60(shared_ptr<ModbusClient> modbus) :
+    mRelativeHumidity{ 0 },
     mTemperature{ 0 },
     mHumidityRegisterLow{ modbus, mModbusAddress, RH_REGISTER_LOW, false },
     mHumidityRegisterHigh{ modbus, mModbusAddress, RH_REGISTER_HIGH, false },
