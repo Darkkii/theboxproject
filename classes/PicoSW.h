@@ -18,7 +18,7 @@ typedef enum pico_sw_event_enum {
     ROT_PRESS = 12,
     CLOCKWISE,
     COUNTER_CLOCKWISE,
-} RotSW_event;
+} PicoSW_event;
 
 typedef tuple<uint, uint32_t, uint32_t> event_tuple;
 
@@ -42,7 +42,7 @@ public:
                     bool sw_1 = false,
                     bool sw_2 = false);
     static void interruptHandler(uint gpio, uint32_t event_mask);
-    RotSW_event getEvent();
+    PicoSW_event getEvent();
 };
 
 #endif //PICO_MODBUS_PICOSW_H

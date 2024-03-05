@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <cmath>
+#include <iostream>
 #include "pico/stdlib.h"
 #include "pico/time.h"
 #include "hardware/timer.h"
@@ -15,6 +16,7 @@
 #include "GMP252.h"
 #include "HMP60.h"
 #include "MIO12V.h"
+#include "PicoSW.h"
 
 // We are using pins 0 and 1, but see the GPIO function select table in the
 // datasheet for information on which other pins can be used.
@@ -30,13 +32,12 @@
 
 #define BAUD_RATE 9600
 
-// #define USE_MODBUS
-// #define USE_MQTT
-// #define USE_MODBUS
-// #define USE_MQTT
-// #define USE_SSD1306
-#define TEST_SENSORS
-// #define TEST_FAN_MOTOR
+//#define USE_MODBUS
+//#define USE_MQTT
+//#define USE_SSD1306
+//#define TEST_SENSORS
+#define TEST_FAN_MOTOR
+#define TEST_SW
 
 
 #ifdef USE_SSD1306
@@ -54,7 +55,7 @@ static const uint8_t raspberry26x32[] =
  0x0, 0x3, 0x7, 0xf, 0x1f, 0x1f, 0x3f, 0x3f,
  0x7f, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x7f, 0x3f,
  0x3f, 0x1f, 0x1f, 0xf, 0x7, 0x3, 0x0, 0x0 };
-#endif
+#endif // USE_SSD1306
 
 #ifdef USE_MQTT
 void messageArrived(MQTT::MessageData &md)
@@ -67,24 +68,12 @@ void messageArrived(MQTT::MessageData &md)
 }
 
 static const char *topic = "test-topic";
-#endif
+#endif // USE_MQTT
+
+using namespace std;
 
 int main()
 {
-#ifdef TEST_SENSORS
-    auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
-    auto rtu_client{ std::make_shared<ModbusClient>(uart) };
-    auto modbus_poll = make_timeout_time_ms(3000);
-    GMP252 gmp252{ rtu_client };
-    HMP60 hmp60{ rtu_client };
-    gmp252.update();
-    sleep_ms(5);
-    gmp252.update();
-    sleep_ms(5);
-    hmp60.update();
-    sleep_ms(5);
-#endif
-
     const uint led_pin = 22;
     const uint button = 9;
 
@@ -96,10 +85,32 @@ int main()
     gpio_set_dir(button, GPIO_IN);
     gpio_pull_up(button);
 
+    auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
+    auto rtu_client{ std::make_shared<ModbusClient>(uart) };
+
     // Initialize chosen serial port
     stdio_init_all();
 
+    uint16_t fanSpeed = 0;
+
     printf("\nBoot\n");
+
+#ifdef TEST_SENSORS
+    auto modbus_poll = make_timeout_time_ms(3000);
+    GMP252 gmp252{ rtu_client };
+    HMP60 hmp60{ rtu_client };
+    gmp252.update();
+    sleep_ms(5);
+    gmp252.update();
+    sleep_ms(5);
+    hmp60.update();
+    sleep_ms(5);
+#endif // TEST_SENSORS
+
+#ifdef TEST_SW
+    PicoSW picoSW(true, true);
+    PicoSW_event swEvent;
+#endif // TEST_SW
 
 #ifdef USE_SSD1306
     // I2C is "open drain",
@@ -124,10 +135,9 @@ int main()
     }
     display.text("Done", 20, 20);
     display.show();
-#endif
+#endif // display scroll
 
-#endif
-
+#endif // USE_SSD1306
 
 #ifdef USE_MQTT
     //IPStack ipstack("SSID", "PASSWORD"); // example
@@ -162,24 +172,22 @@ int main()
     auto mqtt_send = make_timeout_time_ms(2000);
     int mqtt_qos = 0;
     int msg_count = 0;
-#endif
+#endif // USE_MQTT
 
 #ifdef USE_MODBUS
-    auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
-    auto rtu_client{ std::make_shared<ModbusClient>(uart) };
-    ModbusRegister rh(rtu_client, 241, 256);
+    auto uart_modbus{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
+    auto rtu_client_modbus{ std::make_shared<ModbusClient>(uart_modbus) };
+    ModbusRegister rh(rtu_client_modbus, 241, 256);
     auto modbus_poll = make_timeout_time_ms(3000);
-#endif
+#endif // USE_MODUS
 
 #ifdef TEST_FAN_MOTOR
-    auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
-    auto rtu_client{ std::make_shared<ModbusClient>(uart) };
-
     MIO12V fanController(rtu_client);
     sleep_ms(100);
-    fanController.setFanSpeed(0);
-    printf("%u\n", fanController.getFanSpeed());
-#endif
+    fanController.setFanSpeed(fanSpeed);
+    sleep_ms(5);
+    printf("Fan Speed: %u\n", fanSpeed);
+#endif // TEST_FAN_MOTOR
 
     while (true) {
 #ifdef USE_MODBUS
@@ -188,7 +196,8 @@ int main()
             modbus_poll = delayed_by_ms(modbus_poll, 3000);
             printf("RH=%5.1f%%\n", rh.read() / 10.0);
         }
-#endif
+#endif // USE_MODBUS
+
 #ifdef USE_MQTT
         if (time_reached(mqtt_send)) {
             mqtt_send = delayed_by_ms(mqtt_send, 2000);
@@ -238,7 +247,7 @@ int main()
                     printf("Publish rc=%d\n", rc);
                     ++mqtt_qos;
                     break;
-#endif
+#endif // MQTTCLIENT_QOS2
                 default:
                     mqtt_qos = 0;
                     break;
@@ -247,7 +256,7 @@ int main()
 
         cyw43_arch_poll(); // obsolete? - see below
         client.yield(100); // socket that client uses calls cyw43_arch_poll()
-#endif
+#endif // USE_MQTT
 
 #ifdef TEST_SENSORS
         if (time_reached(modbus_poll)) {
@@ -263,7 +272,34 @@ int main()
             hmp60.update();
             sleep_ms(5);
         }
-#endif
+#endif // TEST_SENSORS
+
+#ifdef TEST_SW
+        while ((swEvent = picoSW.getEvent()) != NO_EVENT) {
+            switch (swEvent) {
+#ifdef TEST_FAN_MOTOR
+                case CLOCKWISE:
+                    if (fanSpeed < 1000) fanSpeed += 2;
+                    break;
+                case COUNTER_CLOCKWISE:
+                    if (fanSpeed > 0) fanSpeed -= 2;
+                    break;
+#else
+                case CLOCKWISE:
+                    cout << "Rot Clockwise!" << endl;
+                    break;
+                case COUNTER_CLOCKWISE:
+                    cout << "Rot Counter-Clockwise!" << endl;
+                    break;
+#endif // TEST_SENSORS
+            }
+        }
+#ifdef TEST_FAN_MOTOR
+        if (fanController.getFanSpeed() != fanSpeed) {
+            fanController.setFanSpeed(fanSpeed);
+            cout << "New fanspeed: " << fanSpeed << endl;
+        }
+#endif // TEST_FAN_MOTOR
+#endif // TEST_SW
     }
 }
-
