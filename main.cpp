@@ -30,12 +30,10 @@
 
 #define BAUD_RATE 9600
 
-// #define USE_MODBUS
 // #define USE_MQTT
 // #define USE_MODBUS
-// #define USE_MQTT
 // #define USE_SSD1306
-#define TEST_SENSORS
+// #define TEST_SENSORS
 // #define TEST_FAN_MOTOR
 
 
@@ -128,13 +126,12 @@ int main()
 
 #endif
 
-
 #ifdef USE_MQTT
-    //IPStack ipstack("SSID", "PASSWORD"); // example
-    IPStack ipstack("SmartIotMQTT", "SmartIot"); // example
+    IPStack ipstack("PICO-Q59k95", "Q5-9k195"); // example
+    // IPStack ipstack("SmartIotMQTT", "SmartIot"); // example
     auto client = MQTT::Client<IPStack, Countdown>(ipstack);
 
-    int rc = ipstack.connect("192.168.1.10", 1883);
+    int rc = ipstack.connect("192.168.137.1", 1883);
     if (rc != 1) {
         printf("rc from TCP connect is %d\n", rc);
     }
