@@ -10,6 +10,7 @@ private:
     const int mModbusAddress = 1;
     const int mFanRotationRegisterAddress = 0x0004;
     const int mFanSpeedRegisterAddress = 0x0000;
+    uint16_t mFanSpeed;
     ModbusRegister mFanRotationRegister;
     ModbusRegister mFanSpeedRegister;
 

@@ -1,11 +1,16 @@
 #include "MIO12V.h"
+#include "pico/time.h"
 
 using namespace std;
 
 MIO12V::MIO12V(shared_ptr<ModbusClient> modbus) :
+    mFanSpeed{ 0 },
     mFanRotationRegister{ modbus, mModbusAddress, mFanRotationRegisterAddress, false },
     mFanSpeedRegister{ modbus, mModbusAddress,  mFanSpeedRegisterAddress }
-{}
+{
+    mFanSpeed = mFanSpeedRegister.read();
+    sleep_ms(5);
+}
 
 uint16_t MIO12V::getFanRotation()
 {
@@ -14,7 +19,7 @@ uint16_t MIO12V::getFanRotation()
 
 uint16_t MIO12V::getFanSpeed()
 {
-    return mFanSpeedRegister.read();
+    return mFanSpeed;
 }
 
 void MIO12V::setFanSpeed(uint16_t speed)
@@ -24,5 +29,7 @@ void MIO12V::setFanSpeed(uint16_t speed)
         speed = speed < 1000 ? 0 : 1000;
     }
 
-    mFanSpeedRegister.write(speed);
+    mFanSpeed = speed;
+    mFanSpeedRegister.write(mFanSpeed);
+    sleep_ms(5);
 }
