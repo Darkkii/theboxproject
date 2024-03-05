@@ -80,7 +80,7 @@ add_subdirectory(sensors)
 add_subdirectory(classes)
 
 # Link to pico_stdlib (gpio, time, etc. functions)
-target_link_libraries(${PROJECT_NAME} 
+target_link_libraries(${PROJECT_NAME} PRIVATE
         # pico_stdlib
         # hardware_i2c
         # hardware_gpio
