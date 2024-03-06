@@ -6,6 +6,8 @@ add_library(${LIBRARY_NAME}
         ExampleClass.cpp
         MIO12V.cpp
         PicoSW.cpp)
+        Eeprom.cpp
+)
 
 # Include directories -- No need to edit
 target_include_directories(${LIBRARY_NAME} INTERFACE
@@ -16,4 +18,5 @@ target_include_directories(${LIBRARY_NAME} INTERFACE
 target_link_libraries(${LIBRARY_NAME} PRIVATE
         modbus
         pico_stdlib
+        i2c
 )
