@@ -15,6 +15,7 @@
 #include "ssd1306.h"
 #include "GMP252.h"
 #include "HMP60.h"
+#include "SDP600.h"
 #include "MIO12V.h"
 #include "PicoSW.h"
 
@@ -35,9 +36,10 @@
 //#define USE_MODBUS
 //#define USE_MQTT
 //#define USE_SSD1306
-//#define TEST_SENSORS
+#define TEST_SENSORS
 #define TEST_FAN_MOTOR
 #define TEST_SW
+#define TEST_PRESSURE_SENSOR
 
 
 #ifdef USE_SSD1306
@@ -72,6 +74,11 @@ static const char *topic = "test-topic";
 
 using namespace std;
 
+union pressure_conversion {
+    uint16_t u16;
+    int16_t _int;
+};
+
 int main()
 {
     const uint led_pin = 22;
@@ -87,6 +94,10 @@ int main()
 
     auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
     auto rtu_client{ std::make_shared<ModbusClient>(uart) };
+
+    i2c_init(i2c1, 400 * 1000);
+    gpio_set_function(14, GPIO_FUNC_I2C);
+    gpio_set_function(15, GPIO_FUNC_I2C);
 
     // Initialize chosen serial port
     stdio_init_all();
@@ -108,16 +119,13 @@ int main()
 #endif // TEST_SENSORS
 
 #ifdef TEST_SW
-    PicoSW picoSW(true, true);
+    PicoSW picoSW(true, true, true);
     PicoSW_event swEvent;
 #endif // TEST_SW
 
 #ifdef USE_SSD1306
     // I2C is "open drain",
     // pull ups to keep signal high when no data is being sent
-    i2c_init(i2c1, 400 * 1000);
-    gpio_set_function(14, GPIO_FUNC_I2C); // the display has external pull-ups
-    gpio_set_function(15, GPIO_FUNC_I2C); // the display has external pull-ups
     ssd1306 display(i2c1);
     display.fill(0);
     display.text("Hello", 0, 0);
@@ -185,9 +193,11 @@ int main()
     MIO12V fanController(rtu_client);
     sleep_ms(100);
     fanController.setFanSpeed(fanSpeed);
-    sleep_ms(5);
     printf("Fan Speed: %u\n", fanSpeed);
 #endif // TEST_FAN_MOTOR
+#ifdef TEST_PRESSURE_SENSOR
+    SDP600 sdp600{};
+#endif // TEST_PRESSURE_SENSOR
 
     while (true) {
 #ifdef USE_MODBUS
@@ -266,6 +276,9 @@ int main()
             printf("Temp (GMP252): %.1f\n", gmp252.getTemperature());
             printf("RH: %.1f\n", hmp60.getRelativeHumidity());
             printf("Temp (HMP60): %.1f\n", hmp60.getTemperature());
+#ifdef TEST_PRESSURE_SENSOR
+            printf("Pressure: %hd\n", sdp600.getPressure());
+#endif // TEST_PRESSURE_SENSOR
             printf("----------------\n");
             gmp252.update();
             sleep_ms(5);
@@ -284,6 +297,11 @@ int main()
                 case COUNTER_CLOCKWISE:
                     if (fanSpeed > 0) fanSpeed -= 2;
                     break;
+                case SW_0_PRESS:
+#ifdef TEST_PRESSURE_SENSOR
+                    cout << "SW_0 press" << endl;
+                    break;
+#endif // TEST_PRESSURE_SENSOR
 #else
                 case CLOCKWISE:
                     cout << "Rot Clockwise!" << endl;
@@ -301,5 +319,6 @@ int main()
         }
 #endif // TEST_FAN_MOTOR
 #endif // TEST_SW
+
     }
 }
