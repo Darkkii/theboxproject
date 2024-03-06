@@ -5,7 +5,7 @@ set(LIBRARY_NAME classes)
 add_library(${LIBRARY_NAME}
         ExampleClass.cpp
         MIO12V.cpp
-        PicoSW.cpp)
+        PicoSW.cpp
         Eeprom.cpp
 )
 
