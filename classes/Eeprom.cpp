@@ -1,5 +1,7 @@
 #include "Eeprom.h"
 
+using namespace std;
+
 Eeprom::Eeprom(std::shared_ptr<I2CHandler> i2cHandler) :
     mCurrentReadWriteAddress{ 0 },
     mI2CHandler{ i2cHandler }
@@ -7,11 +9,30 @@ Eeprom::Eeprom(std::shared_ptr<I2CHandler> i2cHandler) :
 
 void Eeprom::write(const uint8_t *writeBuffer, size_t bytesToWrite)
 {
+    size_t totalBytesToWrite = bytesToWrite + 2; // +2 address bytes
+    uint8_t buffer[totalBytesToWrite];
 
+    for (int i = 0; i < totalBytesToWrite; i++)
+    {
+        if (i < 2)
+        {
+            buffer[i] = mCurrentReadWriteAddress[i];
+        }
+        else
+        {
+            buffer[i] = writeBuffer[i - 2];
+        }
+    }
+
+    mWaitUntilReady();
+    i2c_write_blocking(mI2CHandler->getI2CBus(mI2CBusNumber), mI2CDeviceAddress, buffer, totalBytesToWrite, false);
 }
 
 void Eeprom::write(const uint16_t readWriteAddress, const uint8_t *writeBuffer, size_t bytesToWrite)
-{}
+{
+    mSetReadWriteAddress(readWriteAddress);
+    write(writeBuffer, bytesToWrite);
+}
 
 void Eeprom::read(uint8_t *readBuffer, size_t bytesToRead)
 {}
