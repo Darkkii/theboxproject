@@ -5,7 +5,7 @@ set(LIBRARY_NAME classes)
 add_library(${LIBRARY_NAME}
         ExampleClass.cpp
         MIO12V.cpp
-        I2CHandler.cpp)
+)
 
 # Include directories -- No need to edit
 target_include_directories(${LIBRARY_NAME} INTERFACE
