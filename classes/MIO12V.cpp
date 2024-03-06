@@ -22,7 +22,7 @@ uint16_t MIO12V::getFanSpeed()
     return mFanSpeed;
 }
 
-void MIO12V::setFanSpeed(uint16_t speed)
+void MIO12V::setFanSpeed(int speed)
 {
     if (speed < 0 || speed > 1000)
     {

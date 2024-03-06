@@ -19,7 +19,7 @@ public:
     MIO12V(const MIO12V &) = delete;
     uint16_t getFanRotation();
     uint16_t getFanSpeed();
-    void setFanSpeed(uint16_t speed);
+    void setFanSpeed(int speed);
 };
 
 #endif /* MIO12V_H */
