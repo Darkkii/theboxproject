@@ -12,7 +12,8 @@ target_include_directories(${LIBRARY_NAME} INTERFACE
 )
 
 # Link Libraries -- Add each library that the current module needs to this list
-target_link_libraries(${LIBRARY_NAME} PUBLIC
-        pico_stdlib
+target_link_libraries(${LIBRARY_NAME}
+        PUBLIC
+        hardware_uart
         hardware_gpio
 )

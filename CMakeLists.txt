@@ -79,10 +79,11 @@ add_subdirectory(uart)
 add_subdirectory(sensors)
 add_subdirectory(i2c)
 add_subdirectory(classes)
+add_subdirectory(observer)
 
 # Link to pico_stdlib (gpio, time, etc. functions)
 target_link_libraries(${PROJECT_NAME} PRIVATE
-        # pico_stdlib
+        pico_stdlib
         # hardware_i2c
         # hardware_gpio
         # pico_cyw43_arch_lwip_poll
