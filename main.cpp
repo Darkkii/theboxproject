@@ -35,7 +35,7 @@
 
 //#define USE_MODBUS
 //#define USE_MQTT
-//#define USE_SSD1306
+#define USE_SSD1306
 #define TEST_SENSORS
 #define TEST_FAN_MOTOR
 #define TEST_SW
@@ -81,6 +81,11 @@ union pressure_conversion {
 
 int main()
 {
+
+    // Initialize chosen serial port
+    stdio_init_all();
+    printf("\nBoot\n");
+
     const uint led_pin = 22;
     const uint button = 9;
 
@@ -92,6 +97,7 @@ int main()
     gpio_set_dir(button, GPIO_IN);
     gpio_pull_up(button);
 
+    auto modbus_poll = make_timeout_time_ms(3000);
     auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
     auto rtu_client{ std::make_shared<ModbusClient>(uart) };
 
@@ -99,15 +105,17 @@ int main()
     gpio_set_function(14, GPIO_FUNC_I2C);
     gpio_set_function(15, GPIO_FUNC_I2C);
 
-    // Initialize chosen serial port
-    stdio_init_all();
+    uint16_t targetFanSpeed = 0; // get from eeprom ?
+    int16_t targetPressure = 0; // get from eeprom ?
+    bool manual = true; // get from eeprom ?
+    bool adjust = false; // initially false I think
 
-    uint16_t fanSpeed = 0;
+    MIO12V fanController(rtu_client);
+    sleep_ms(100);
+    fanController.setFanSpeed(targetFanSpeed);
+    printf("Fan Speed: %u\n", targetFanSpeed);
 
-    printf("\nBoot\n");
-
-#ifdef TEST_SENSORS
-    auto modbus_poll = make_timeout_time_ms(3000);
+    SDP600 sdp600{};
     GMP252 gmp252{ rtu_client };
     HMP60 hmp60{ rtu_client };
     gmp252.update();
@@ -116,35 +124,10 @@ int main()
     sleep_ms(5);
     hmp60.update();
     sleep_ms(5);
-#endif // TEST_SENSORS
-
-#ifdef TEST_SW
     PicoSW picoSW(true, true, true);
     PicoSW_event swEvent;
-#endif // TEST_SW
-
 #ifdef USE_SSD1306
-    // I2C is "open drain",
-    // pull ups to keep signal high when no data is being sent
     ssd1306 display(i2c1);
-    display.fill(0);
-    display.text("Hello", 0, 0);
-    mono_vlsb rb(raspberry26x32, 26, 32);
-    display.blit(rb, 20, 20);
-    display.rect(15, 15, 35, 45, 1);
-    display.line(60, 5, 120, 60, 1);
-    display.line(60, 60, 120, 5, 1);
-    display.show();
-#if 1
-    for (int i = 0; i < 128; ++i) {
-        sleep_ms(50);
-        display.scroll(1, 0);
-        display.show();
-    }
-    display.text("Done", 20, 20);
-    display.show();
-#endif // display scroll
-
 #endif // USE_SSD1306
 
 #ifdef USE_MQTT
@@ -182,32 +165,7 @@ int main()
     int msg_count = 0;
 #endif // USE_MQTT
 
-#ifdef USE_MODBUS
-    auto uart_modbus{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
-    auto rtu_client_modbus{ std::make_shared<ModbusClient>(uart_modbus) };
-    ModbusRegister rh(rtu_client_modbus, 241, 256);
-    auto modbus_poll = make_timeout_time_ms(3000);
-#endif // USE_MODUS
-
-#ifdef TEST_FAN_MOTOR
-    MIO12V fanController(rtu_client);
-    sleep_ms(100);
-    fanController.setFanSpeed(fanSpeed);
-    printf("Fan Speed: %u\n", fanSpeed);
-#endif // TEST_FAN_MOTOR
-#ifdef TEST_PRESSURE_SENSOR
-    SDP600 sdp600{};
-#endif // TEST_PRESSURE_SENSOR
-
     while (true) {
-#ifdef USE_MODBUS
-        if (time_reached(modbus_poll)) {
-            gpio_put(led_pin, !gpio_get(led_pin)); // toggle  led
-            modbus_poll = delayed_by_ms(modbus_poll, 3000);
-            printf("RH=%5.1f%%\n", rh.read() / 10.0);
-        }
-#endif // USE_MODBUS
-
 #ifdef USE_MQTT
         if (time_reached(mqtt_send)) {
             mqtt_send = delayed_by_ms(mqtt_send, 2000);
@@ -267,58 +225,98 @@ int main()
         cyw43_arch_poll(); // obsolete? - see below
         client.yield(100); // socket that client uses calls cyw43_arch_poll()
 #endif // USE_MQTT
-
-#ifdef TEST_SENSORS
         if (time_reached(modbus_poll)) {
+
+            display.fill(0);
+
             gpio_put(led_pin, !gpio_get(led_pin)); // toggle  led
             modbus_poll = delayed_by_ms(modbus_poll, 3000);
-            printf("CO2: %.0f\n", gmp252.getCO2());
-            printf("Temp (GMP252): %.1f\n", gmp252.getTemperature());
-            printf("RH: %.1f\n", hmp60.getRelativeHumidity());
-            printf("Temp (HMP60): %.1f\n", hmp60.getTemperature());
-#ifdef TEST_PRESSURE_SENSOR
-            printf("Pressure: %hd\n", sdp600.getPressure());
-#endif // TEST_PRESSURE_SENSOR
-            printf("----------------\n");
+
+            char CO2[17];
+            float co2 = gmp252.getCO2();
+            snprintf(CO2, 17, "%4s: %c%-5.0f %s", "CO2", ' ', co2, "ppm");
+            display.text(CO2,0,0);
+            printf(CO2); printf("\n");
+            char TEMP[17];
+            float temp = (gmp252.getTemperature() + hmp60.getTemperature()) / 2;
+            snprintf(TEMP, 17, "%4s: %c%-5.1f %s", "Temp",
+                     temp < 0 ? '-' : '+', abs(temp), "C");
+            display.text(TEMP,0,9);
+            printf(TEMP); printf("\n");
+            char RH[17];
+            float rh = hmp60.getRelativeHumidity();
+            snprintf(RH, 17, "%4s:  %-5.1f %s", "RH", rh, "%");
+            display.text(RH,0,18);
+            printf(RH); printf("\n");
+
+            char header[17] = "      Curr  Tar";
+            display.text(header,0,36);
+            printf(header); printf("\n");
+            char pres[17];
+            int16_t presCurr = sdp600.getPressure() / 240;
+            snprintf(pres, 17, "%4s: %c%-4hd%c%c%-5.0f",
+                     "Pres",
+                     presCurr < 0 ? '-' : '+', abs(presCurr),
+                     !manual ? '>' : ' ',
+                     targetPressure < 0 ? '-' : '+', targetPressure);
+            display.text(pres,0,45);
+            printf(pres); printf("\n");
+            char fan[17];
+            float fanCurr = fanController.getFanSpeed() / 10;
+            float fanTarg = targetFanSpeed / 10;
+            snprintf(fan, 17, "%4s:  %-4.0f%c %-5.0f",
+                     "Fan", fanCurr,
+                     manual ? '>' : ' ', fanTarg);
+            display.text(fan,0,54);
+            printf(fan); printf("\n");
+            printf("----------------------"); printf("\n");
+            display.show();
             gmp252.update();
             sleep_ms(5);
             hmp60.update();
             sleep_ms(5);
         }
-#endif // TEST_SENSORS
-
-#ifdef TEST_SW
         while ((swEvent = picoSW.getEvent()) != NO_EVENT) {
             switch (swEvent) {
-#ifdef TEST_FAN_MOTOR
                 case CLOCKWISE:
-                    if (fanSpeed < 1000) fanSpeed += 2;
+                    if (adjust) {
+                        if (manual) {
+                            if (targetFanSpeed < 1000) targetFanSpeed += 2;
+                        } else {
+                            if (targetPressure < 125) targetPressure += 1;
+                        }
+                    }
                     break;
                 case COUNTER_CLOCKWISE:
-                    if (fanSpeed > 0) fanSpeed -= 2;
+                    if (adjust) {
+                        if (manual) {
+                            if (targetFanSpeed > 0) targetFanSpeed -= 2;
+                        } else {
+                            if (targetPressure > 0) targetPressure -= 1;
+                        }
+                    }
+                    break;
+                case ROT_PRESS:
+                    adjust = !adjust;
                     break;
                 case SW_0_PRESS:
-#ifdef TEST_PRESSURE_SENSOR
-                    cout << "SW_0 press" << endl;
+                    manual = !manual;
                     break;
-#endif // TEST_PRESSURE_SENSOR
-#else
-                case CLOCKWISE:
-                    cout << "Rot Clockwise!" << endl;
-                    break;
-                case COUNTER_CLOCKWISE:
-                    cout << "Rot Counter-Clockwise!" << endl;
-                    break;
-#endif // TEST_SENSORS
             }
         }
-#ifdef TEST_FAN_MOTOR
-        if (fanController.getFanSpeed() != fanSpeed) {
-            fanController.setFanSpeed(fanSpeed);
-            cout << "New fanspeed: " << fanSpeed << endl;
+        if (manual) {
+            if (fanController.getFanSpeed() != targetFanSpeed) {
+                fanController.setFanSpeed(targetFanSpeed);
+            }
+        } else {
+            int16_t currPres = sdp600.getPressure() / 240;
+            if (currPres < targetPressure) {
+                if (targetFanSpeed < 1000) targetFanSpeed += 2;
+                cout << "Pressure adjustment!" << endl;
+            } else if (currPres > targetPressure) {
+                if (targetFanSpeed > 0) targetFanSpeed -= 2;
+                cout << "Pressure adjustment!" << endl;
+            }
         }
-#endif // TEST_FAN_MOTOR
-#endif // TEST_SW
-
     }
 }

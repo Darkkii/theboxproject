@@ -32,4 +32,9 @@ void MIO12V::setFanSpeed(int speed)
     mFanSpeed = speed;
     mFanSpeedRegister.write(mFanSpeed);
     sleep_ms(5);
+    notifyObservers();
 }
+
+void MIO12V::addObserver(shared_ptr<Observer> observer) { mObservers.push_back(observer); }
+
+void MIO12V::notifyObservers() { for (auto &&observer : mObservers) { observer->update(); } }
