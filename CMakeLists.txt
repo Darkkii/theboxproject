@@ -77,6 +77,7 @@ add_subdirectory(modbus)
 add_subdirectory(mqtt)
 add_subdirectory(uart)
 add_subdirectory(sensors)
+add_subdirectory(i2c)
 add_subdirectory(classes)
 add_subdirectory(observer)
 
