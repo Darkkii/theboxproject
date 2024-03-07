@@ -63,23 +63,3 @@ void Eeprom::mWaitUntilReady()
         sleep_us(500); // Sleep to stop too many repeated requests.
     }
 }
-
-/*
-
-// Reads data from the EEPROM.
-int eeprom_read(uint8_t *dest, size_t bytes_to_read)
-{
-    eeprom_wait_for_ready();
-    i2c_write_blocking(eeprom_i2c, EEPROM_DEVICE_ADDRESS, rwaddr, 2, true);
-
-    return i2c_read_blocking(eeprom_i2c, EEPROM_DEVICE_ADDRESS, dest, bytes_to_read, false);
-}
-
-void eeprom_clear_bytes(size_t bytes_to_clear)
-{
-    uint8_t clear_buffer[EEPROM_PAGE_MAX] = {0};
-    eeprom_write(clear_buffer, bytes_to_clear);
-    eeprom_wait_for_ready();
-}
-
-*/
