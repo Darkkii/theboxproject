@@ -6,6 +6,7 @@
 #include "pico/time.h"
 #include "hardware/timer.h"
 #include "uart/PicoUart.h"
+#include <memory>
 
 #include "IPStack.h"
 #include "Countdown.h"
@@ -18,6 +19,7 @@
 #include "SDP600.h"
 #include "MIO12V.h"
 #include "PicoSW.h"
+#include "I2CHandler.h"
 
 // We are using pins 0 and 1, but see the GPIO function select table in the
 // datasheet for information on which other pins can be used.
@@ -81,6 +83,7 @@ union pressure_conversion {
 
 int main()
 {
+    auto i2cHandler {make_shared<I2CHandler>()};
 
     // Initialize chosen serial port
     stdio_init_all();
@@ -127,7 +130,7 @@ int main()
     PicoSW picoSW(true, true, true);
     PicoSW_event swEvent;
 #ifdef USE_SSD1306
-    ssd1306 display(i2c1);
+    ssd1306 display(i2cHandler->getI2CBus(1));
 #endif // USE_SSD1306
 
 #ifdef USE_MQTT

@@ -93,6 +93,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         uart
         classes
         sensors
+        i2c
 )
 
 # Enable usb output, disable uart output

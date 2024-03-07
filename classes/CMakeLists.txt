@@ -7,6 +7,8 @@ add_library(${LIBRARY_NAME}
         MIO12V.cpp
         PicoSW.cpp
         Eeprom.cpp
+        Informer.cpp
+        Informer.h
 )
 
 # Include directories -- No need to edit
@@ -20,5 +22,7 @@ target_link_libraries(${LIBRARY_NAME}
         pico_stdlib
         modbus
         observer
+        display
         i2c
+        sensors
 )
