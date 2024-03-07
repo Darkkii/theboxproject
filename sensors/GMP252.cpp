@@ -33,4 +33,9 @@ void GMP252::update()
     sleep_ms(5);
     mTemperature.u = mTemperatureRegisterLow.read() | (mTemperatureRegisterHigh.read() << 16);
     sleep_ms(5);
+    notifyObservers();
 }
+
+void GMP252::addObserver(shared_ptr<Observer> observer) { mObservers.push_back(observer); }
+
+void GMP252::notifyObservers() { for (auto &&observer : mObservers) { observer->update(); } }
