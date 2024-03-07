@@ -1,18 +1,14 @@
 #ifndef SUBJECT_H
 #define SUBJECT_H
 
-#include <vector>
+#include <memory>
 #include "Observer.h"
 
 class Subject
 {
-private:
-    std::vector<Observer *> mObservers;
-
 public:
-    explicit Subject() {}
-    void addObserver(Observer *observer);
-    virtual void notify() = 0;
+    virtual void addObserver(std::shared_ptr<Observer> observer) = 0;
+    virtual void notifyObservers() = 0;
 };
 
 #endif /* SUBJECT_H */
