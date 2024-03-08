@@ -4,6 +4,7 @@ set(LIBRARY_NAME mqtthandler)
 # Library sources -- Add each .cpp or .c file from the folder here
 add_library(${LIBRARY_NAME}
         MQTTHandler.cpp
+        cJSON.c
 )
 
 # Include directories -- No need to edit
@@ -18,4 +19,5 @@ target_link_libraries(${LIBRARY_NAME}
         PRIVATE
         pico_stdlib
         mqtt
+        observer
 )
