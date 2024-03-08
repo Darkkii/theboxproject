@@ -34,7 +34,7 @@ private:
 
 public:
     GMP252(std::shared_ptr<ModbusClient> modbus);
-    GMP252(const GMP252 &) = delete;
+    //GMP252(const GMP252 &) = delete;
     float getCO2();
     float getTemperature();
     uint16_t getDeviceStatus();

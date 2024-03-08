@@ -3,8 +3,9 @@
 
 #include <hardware/i2c.h>
 #include <hardware/gpio.h>
+#include "Subject.h"
 
-class SDP600 {
+class SDP600: public Subject {
 private:
     i2c_inst * mSensor_i2c;
     uint8_t mDevAddr;

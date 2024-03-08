@@ -9,6 +9,8 @@ add_library(${LIBRARY_NAME}
         Eeprom.cpp
         Informer.cpp
         Informer.h
+        State.cpp
+        State.h
 )
 
 # Include directories -- No need to edit

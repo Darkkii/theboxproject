@@ -20,6 +20,7 @@
 #include "MIO12V.h"
 #include "PicoSW.h"
 #include "I2CHandler.h"
+#include "State.h"
 
 // We are using pins 0 and 1, but see the GPIO function select table in the
 // datasheet for information on which other pins can be used.
@@ -39,23 +40,6 @@
 //#define USE_SSD1306
 
 
-#ifdef USE_SSD1306
-static const uint8_t raspberry26x32[] =
-{ 0x0, 0x0, 0xe, 0x7e, 0xfe, 0xff, 0xff, 0xff,
- 0xff, 0xff, 0xfe, 0xfe, 0xfc, 0xf8, 0xfc, 0xfe,
- 0xfe, 0xff, 0xff,0xff, 0xff, 0xff, 0xfe, 0x7e,
- 0x1e, 0x0, 0x0, 0x0, 0x80, 0xe0, 0xf8, 0xfd,
- 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,0xff, 0xff,
- 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfd,
- 0xf8, 0xe0, 0x80, 0x0, 0x0, 0x1e, 0x7f, 0xff,
- 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
- 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
- 0xff, 0xff, 0xff, 0xff, 0x7f, 0x1e, 0x0, 0x0,
- 0x0, 0x3, 0x7, 0xf, 0x1f, 0x1f, 0x3f, 0x3f,
- 0x7f, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x7f, 0x3f,
- 0x3f, 0x1f, 0x1f, 0xf, 0x7, 0x3, 0x0, 0x0 };
-#endif // USE_SSD1306
-
 #ifdef USE_MQTT
 void messageArrived(MQTT::MessageData &md)
 {
@@ -71,11 +55,6 @@ static const char *topic = "test-topic";
 
 using namespace std;
 
-union pressure_conversion {
-    uint16_t u16;
-    int16_t _int;
-};
-
 int main()
 {
     auto i2cHandler {make_shared<I2CHandler>()};
@@ -84,39 +63,21 @@ int main()
     stdio_init_all();
     printf("\nBoot\n");
 
-    const uint led_pin = 22;
-    const uint button = 9;
-
-    // Initialize LED pin
-    gpio_init(led_pin);
-    gpio_set_dir(led_pin, GPIO_OUT);
-
-    gpio_init(button);
-    gpio_set_dir(button, GPIO_IN);
-    gpio_pull_up(button);
-
     auto modbus_poll = make_timeout_time_ms(3000);
     auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
     auto rtu_client{ std::make_shared<ModbusClient>(uart) };
-
-    i2c_init(i2c1, 400 * 1000);
-    gpio_set_function(14, GPIO_FUNC_I2C);
-    gpio_set_function(15, GPIO_FUNC_I2C);
 
     uint16_t targetFanSpeed = 0; // get from eeprom ?
     int16_t targetPressure = 0; // get from eeprom ?
     bool manual = true; // get from eeprom ?
     bool adjust = false; // initially false I think
 
-    MIO12V fanController(rtu_client);
+    auto fanController {make_shared<MIO12V>(rtu_client)};
+    auto gmp252 {make_shared<GMP252>(rtu_client)};
+    auto hmp252 {make_shared<HMP60>(rtu_client)};
+    auto sdp600 {make_shared<SDP600>(i2cHandler->getI2CBus(1))};
 
-    SDP600 sdp600{};
-    GMP252 gmp252{ rtu_client };
-    HMP60 hmp60{ rtu_client };
-
-    gmp252.update();
-    gmp252.update();
-    hmp60.update();
+    State state{i2cHandler, gmp252, hmp252, fanController, sdp600};
 
     PicoSW picoSW(true, true, true);
     PicoSW_event swEvent;
