@@ -21,3 +21,11 @@ int16_t SDP600::getPressure()
     uint16 = (buf[0] << 8) + (buf[1]);
     return int16;
 }
+
+void SDP600::addObserver(std::shared_ptr<Observer> observer) {
+    mObservers.push_back(observer);
+}
+
+void SDP600::notifyObservers() {
+    for (auto &&observer : mObservers) { observer->update(); }
+}
