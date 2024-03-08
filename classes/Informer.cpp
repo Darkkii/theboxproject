@@ -26,7 +26,6 @@ void Informer::fetchValues()
 
 void Informer::updateOLED()
 {
-
     char CO2[17];
     snprintf(CO2, 17, "%4s: %c%-5.0f %s", "CO2", ' ', mCO2, "ppm");
     mDisplay.text(CO2,0,0);
@@ -52,6 +51,7 @@ void Informer::updateOLED()
              "Fan", mCurrentFanSpeed,
              mManual ? '>' : ' ', mTargetFanSpeed);
     mDisplay.text(fan,0,54);
+    mDisplay.show();
 }
 
 void Informer::updateCout()

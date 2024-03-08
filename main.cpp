@@ -35,13 +35,8 @@
 
 #define BAUD_RATE 9600
 
-//#define USE_MODBUS
 //#define USE_MQTT
-#define USE_SSD1306
-#define TEST_SENSORS
-#define TEST_FAN_MOTOR
-#define TEST_SW
-#define TEST_PRESSURE_SENSOR
+//#define USE_SSD1306
 
 
 #ifdef USE_SSD1306
@@ -114,19 +109,15 @@ int main()
     bool adjust = false; // initially false I think
 
     MIO12V fanController(rtu_client);
-    sleep_ms(100);
-    fanController.setFanSpeed(targetFanSpeed);
-    printf("Fan Speed: %u\n", targetFanSpeed);
 
     SDP600 sdp600{};
     GMP252 gmp252{ rtu_client };
     HMP60 hmp60{ rtu_client };
+
     gmp252.update();
-    sleep_ms(5);
     gmp252.update();
-    sleep_ms(5);
     hmp60.update();
-    sleep_ms(5);
+
     PicoSW picoSW(true, true, true);
     PicoSW_event swEvent;
 #ifdef USE_SSD1306
@@ -229,55 +220,10 @@ int main()
         client.yield(100); // socket that client uses calls cyw43_arch_poll()
 #endif // USE_MQTT
         if (time_reached(modbus_poll)) {
-
-            display.fill(0);
-
-            gpio_put(led_pin, !gpio_get(led_pin)); // toggle  led
             modbus_poll = delayed_by_ms(modbus_poll, 3000);
 
-            char CO2[17];
-            float co2 = gmp252.getCO2();
-            snprintf(CO2, 17, "%4s: %c%-5.0f %s", "CO2", ' ', co2, "ppm");
-            display.text(CO2,0,0);
-            printf(CO2); printf("\n");
-            char TEMP[17];
-            float temp = (gmp252.getTemperature() + hmp60.getTemperature()) / 2;
-            snprintf(TEMP, 17, "%4s: %c%-5.1f %s", "Temp",
-                     temp < 0 ? '-' : '+', abs(temp), "C");
-            display.text(TEMP,0,9);
-            printf(TEMP); printf("\n");
-            char RH[17];
-            float rh = hmp60.getRelativeHumidity();
-            snprintf(RH, 17, "%4s:  %-5.1f %s", "RH", rh, "%");
-            display.text(RH,0,18);
-            printf(RH); printf("\n");
-
-            char header[17] = "      Curr  Tar";
-            display.text(header,0,36);
-            printf(header); printf("\n");
-            char pres[17];
-            int16_t presCurr = sdp600.getPressure() / 240;
-            snprintf(pres, 17, "%4s: %c%-4hd%c%c%-5.0f",
-                     "Pres",
-                     presCurr < 0 ? '-' : '+', abs(presCurr),
-                     !manual ? '>' : ' ',
-                     targetPressure < 0 ? '-' : '+', targetPressure);
-            display.text(pres,0,45);
-            printf(pres); printf("\n");
-            char fan[17];
-            float fanCurr = fanController.getFanSpeed() / 10;
-            float fanTarg = targetFanSpeed / 10;
-            snprintf(fan, 17, "%4s:  %-4.0f%c %-5.0f",
-                     "Fan", fanCurr,
-                     manual ? '>' : ' ', fanTarg);
-            display.text(fan,0,54);
-            printf(fan); printf("\n");
-            printf("----------------------"); printf("\n");
-            display.show();
             gmp252.update();
-            sleep_ms(5);
             hmp60.update();
-            sleep_ms(5);
         }
         while ((swEvent = picoSW.getEvent()) != NO_EVENT) {
             switch (swEvent) {
