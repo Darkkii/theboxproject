@@ -1,97 +1,146 @@
 #include "MQTTHandler.h"
+// #include <cstring>
+#include "cJSON.h"
+
+using namespace std;
+
+static void mqttMessageHandler(MQTT::MessageData &md);
 
 MQTTHandler::MQTTHandler()
+{}
+
+void MQTTHandler::connect()
 {
-    const char *topic = "test-topic";
+    if (mMQTTClient.isConnected())
+    {
+        mMQTTClient.disconnect();
+        mIPStack.disconnect();
+    }
 
-    // IPStack ipstack("PICO-Q59k95", "Q5-9k195");
-    // auto client = MQTT::Client<IPStack, Countdown>(ipstack);
-
-    // int rc = ipstack.connect("192.168.137.1", 1883);
-    // if (rc != 1) {
-    //     printf("rc from TCP connect is %d\n", rc);
-    // }
-
-    printf("MQTT connecting\n");
-    MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
-    data.MQTTVersion = 3;
-    data.clientID.cstring = (char *)"PicoW-sample";
-    // rc = client.connect(data);
-    // if (rc != 0) {
-    //     printf("rc from MQTT connect is %d\n", rc);
-    //     while (true) {
-    //         tight_loop_contents();
-    //     }
-    // }
-    printf("MQTT connected\n");
-
-    // We subscribe QoS2. Messages sent with lower QoS will be delivered using the QoS they were sent with
-    // rc = client.subscribe(topic, MQTT::QOS2, messageArrived);
-    // if (rc != 0) {
-    //     printf("rc from MQTT subscribe is %d\n", rc);
-    // }
-    printf("MQTT subscribed\n");
-
-    auto mqtt_send = make_timeout_time_ms(2000);
-    int mqtt_qos = 0;
-    int msg_count = 0;
-
-
-    // if (time_reached(mqtt_send)) {
-    //     mqtt_send = delayed_by_ms(mqtt_send, 2000);
-    //     if (!client.isConnected()) {
-    //         printf("Not connected...\n");
-    //         rc = client.connect(data);
-    //         if (rc != 0) {
-    //             printf("rc from MQTT connect is %d\n", rc);
-    //         }
-
-    //     }
-    //     char buf[100];
-    //     int rc = 0;
-    //     MQTT::Message message;
-    //     message.retained = false;
-    //     message.dup = false;
-    //     message.payload = (void *)buf;
-    //     switch (mqtt_qos) {
-    //         case 0:
-    //             // Send and receive QoS 0 message
-    //             sprintf(buf, "Msg nr: %d QoS 0 message", ++msg_count);
-    //             printf("%s\n", buf);
-    //             message.qos = MQTT::QOS0;
-    //             message.payloadlen = strlen(buf) + 1;
-    //             rc = client.publish(topic, message);
-    //             printf("Publish rc=%d\n", rc);
-    //             ++mqtt_qos;
-    //             break;
-    //         case 1:
-    //             // Send and receive QoS 1 message
-    //             sprintf(buf, "Msg nr: %d QoS 1 message", ++msg_count);
-    //             printf("%s\n", buf);
-    //             message.qos = MQTT::QOS1;
-    //             message.payloadlen = strlen(buf) + 1;
-    //             rc = client.publish(topic, message);
-    //             printf("Publish rc=%d\n", rc);
-    //             ++mqtt_qos;
-    //             break;
-    //         case 2:
-    //             // Send and receive QoS 2 message
-    //             sprintf(buf, "Msg nr: %d QoS 2 message", ++msg_count);
-    //             printf("%s\n", buf);
-    //             message.qos = MQTT::QOS2;
-    //             message.payloadlen = strlen(buf) + 1;
-    //             rc = client.publish(topic, message);
-    //             printf("Publish rc=%d\n", rc);
-    //             ++mqtt_qos;
-    //             break;
-    //         default:
-    //             mqtt_qos = 0;
-    //             break;
-    //     }
-    // }
+    if (mMQTTConnect())
+    {
+        mMQTTEnabled = true;
+        // mMQTTSubscribe(mStatusTopic);
+        mMQTTSubscribe(mSettingsTopic);
+    }
 }
 
-void messageArrived(MQTT::MessageData &md)
+void MQTTHandler::setNetworkID(string networkID) { mNetworkID = networkID; }
+
+void MQTTHandler::setNetworkPW(string networkPW) { mNetworkPW = networkPW; }
+
+void MQTTHandler::setBrokerIP(string brokerIP) { mBrokerIP = brokerIP; }
+
+void MQTTHandler::setBrokerPort(int brokerPort) { mBrokerPort = brokerPort; }
+
+void MQTTHandler::setClientID(string clientID) { mClientID = clientID; }
+
+void MQTTHandler::keepAlive()
+{
+    if (mMQTTEnabled)
+    {
+        cyw43_arch_poll(); // obsolete? - see below
+        mMQTTClient.yield(100); // socket that client uses calls cyw43_arch_poll()
+    }
+}
+
+void MQTTHandler::update()
+{
+    // if (!mMQTTClient.isConnected()) {
+    //     printf("Not connected...\n");
+    //     mRC = mMQTTClient.connect(mData);
+    //     if (mRC != 0) {
+    //         printf("rc from MQTT connect is %d\n", mRC);
+    //     }
+
+    // }
+
+    if (mMQTTEnabled)
+    {
+        mMQTTSendStatus();
+        // mMQTTSendSettings();
+    }
+
+}
+
+bool MQTTHandler::mMQTTConnect()
+{
+    char cString[80] = { '\0' };
+
+    strncpy(cString, mClientID.c_str(), 80);
+    cString[79] = '\0';
+
+    int mRC = mIPStack.connect(mBrokerIP.c_str(), mBrokerPort);
+    if (mRC != 1) {
+        printf("rc from TCP connect is %d\n", mRC);
+    }
+
+    printf("MQTT connecting\n");
+    mData.MQTTVersion = 3;
+    mData.clientID.cstring = cString;
+    mRC = mMQTTClient.connect(mData);
+    if (mRC != 0) {
+        printf("rc from MQTT connect is %d\n", mRC);
+        return false;
+    }
+    printf("MQTT connected\n");
+    return true;
+}
+
+bool MQTTHandler::mMQTTSubscribe(const string topic)
+{
+    // We subscribe QoS2. Messages sent with lower QoS will be delivered using the QoS they were sent with
+    mRC = mMQTTClient.subscribe(topic.c_str(), MQTT::QOS2, mqttMessageHandler);
+    if (mRC != 0) {
+        printf("rc from MQTT subscribe is %d\n", mRC);
+        return false;
+    }
+    printf("MQTT subscribed\n");
+    return true;
+}
+
+void MQTTHandler::mMQTTSendStatus()
+{
+    char buf[100];
+    MQTT::Message message;
+    message.retained = false;
+    message.dup = false;
+    message.payload = (void *)buf;
+
+    sprintf(buf, "Msg nr: %d QoS 0 message", ++mMessageCount);
+    printf("%s\n", buf);
+    message.qos = MQTT::QOS0;
+    message.payloadlen = strlen(buf) + 1;
+    mRC = mMQTTClient.publish(mStatusTopic.c_str(), message);
+    printf("Publish rc=%d\n", mRC);
+}
+
+void MQTTHandler::mMQTTSendSettings()
+{
+    char buf[100];
+    MQTT::Message message;
+    message.retained = false;
+    message.dup = false;
+    message.payload = (void *)buf;
+
+    sprintf(buf, "Msg nr: %d QoS 1 message", ++mMessageCount);
+    printf("%s\n", buf);
+    message.qos = MQTT::QOS1;
+    message.payloadlen = strlen(buf) + 1;
+    mRC = mMQTTClient.publish(mSettingsTopic.c_str(), message);
+    printf("Publish rc=%d\n", mRC);
+}
+
+void MQTTHandler::mMQTTMessageHandler(MQTT::MessageData &md)
+{
+    MQTT::Message &message = md.message;
+
+    printf("Message arrived: qos %d, retained %d, dup %d, packetid %d\n",
+           message.qos, message.retained, message.dup, message.id);
+    printf("Payload %s\n", (char *)message.payload);
+}
+
+static void mqttMessageHandler(MQTT::MessageData &md)
 {
     MQTT::Message &message = md.message;
 
