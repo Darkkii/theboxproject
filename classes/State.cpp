@@ -33,17 +33,17 @@ void State::fetchValues() {
 void State::writeLines() {
     mCO2_line.str("");
     mCO2_line << " CO2: ";
-    mCO2_line << setw(5) << mCO2;
+    mCO2_line << setw(5) << setprecision(0) << mCO2;
     mCO2_line << " ppm";
 
     mTemp_line.str("");
     mTemp_line << "Temp: ";
-    mTemp_line << setw(5) << mTemperature;
+    mTemp_line << setw(5) << setprecision(1) << fixed << mTemperature;
     mTemp_line << " C";
 
     mRH_line.str("");
     mRH_line << "  RH: ";
-    mRH_line << setw(5) << mRH;
+    mRH_line << setw(5) << setprecision(1) << fixed << mRH;
     mRH_line << " %";
 
     mPres_line.str("");
@@ -72,9 +72,9 @@ void State::updateOLED() {
     } else if (gettingFanSpeedInput) {
         mDisplay.rect(0, 53, 128, 9, 1, true);
     } else if (mMode_auto) {
-        mDisplay.rect(74, 44, 32, 9, 1);
+        mDisplay.text(">", 73, 45);
     } else {
-        mDisplay.rect(74, 53, 32, 9, 1);
+        mDisplay.text(">", 73, 54);
     }
     mDisplay.text(mPres_line.str(), 0, 45, !gettingPressureInput);
     mDisplay.text(mFan_line.str(), 0, 54, !gettingFanSpeedInput);
@@ -96,13 +96,14 @@ void State::update() {
     fetchValues();
     writeLines();
     updateOLED();
-    //updateCout();
+    updateCout();
 }
 
 void State::toggleMode() {
     mMode_auto = !mMode_auto;
     mInputPressure = mTargetPressure;
-    mInputFanSpeed = mTargetFanSpeed;
+    mInputFanSpeed = mCurrentFanSpeed;
+    mTargetFanSpeed = mCurrentFanSpeed;
     update();
 }
 

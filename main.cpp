@@ -74,9 +74,6 @@ int main()
 
     auto state {make_shared<State>(i2cHandler, gmp252, hmp252, fanController, sdp600)};
 
-    GMP252 dummy_gmp252{rtu_client};
-
-
     fanController->addObserver(state);
     gmp252->addObserver(state);
     hmp252->addObserver(state);
@@ -185,7 +182,8 @@ int main()
 #endif // USE_MQTT
         if (time_reached(modbus_poll)) {
             modbus_poll = delayed_by_ms(modbus_poll, 3000);
-            state->update();
+            gmp252->update();
+            hmp252->update();
         }
 
         while ((swEvent = picoSW.getEvent()) != NO_EVENT) {
