@@ -15,54 +15,80 @@ State::State(const shared_ptr<I2CHandler> &i2cHandler,
     mMode_auto = true;
     mTargetFanSpeed = 0; // get from EEPROM
     mTargetPressure = 0; // get from EEPROM
-    mStateChanged = true;
+    mFanController->setFanSpeed(mTargetFanSpeed);
+    mPrevPressureAdjustment = 0;
+
+    mInputFanSpeed = mTargetFanSpeed;
+    mInputPressure = mTargetPressure;
 }
 
 void State::fetchValues() {
-    auto temp_value = mGMP252->getCO2();
-    mStateChanged = mCO2 != temp_value;
-    mStateChanged = mCO2 != (mCO2 = mGMP252->getCO2());
     mCO2 = mGMP252->getCO2();
     mTemperature = (mGMP252->getTemperature() + mHMP60->getTemperature()) / 2;
     mRH = mHMP60->getRelativeHumidity();
     mCurrentPressure = mSDP600->getPressure() / 240;
-    mCurrentFanSpeed = mFanController->getFanSpeed() / 10;
+    mCurrentFanSpeed = mFanController->getFanSpeed();
 }
 
 void State::writeLines() {
-    snprintf(mCO2_line, 17, " CO2: %5.0f ppm",
-             mCO2);
-    snprintf(mTemp_line, 17, "Temp: %c%5.1f C",
-             mTemperature < 0 ? '-' : '+',
-             abs(mTemperature));
-    snprintf(mRH_line, 17, "  RH:  %5.1f %%",
-             mRH);
-    snprintf(mPres_line, 17, "Pres: %c%5hd  %3hd",
-             mCurrentPressure < 0 ? '-' : '+',
-             abs(mCurrentPressure),
-             mTargetPressure);
-    snprintf(mFan_line, 17, " Fan:  %5 %3",
-             mCurrentFanSpeed,
-             mTargetFanSpeed);
+    mCO2_line.str("");
+    mCO2_line << " CO2: ";
+    mCO2_line << setw(5) << mCO2;
+    mCO2_line << " ppm";
+
+    mTemp_line.str("");
+    mTemp_line << "Temp: ";
+    mTemp_line << setw(5) << mTemperature;
+    mTemp_line << " C";
+
+    mRH_line.str("");
+    mRH_line << "  RH: ";
+    mRH_line << setw(5) << mRH;
+    mRH_line << " %";
+
+    mPres_line.str("");
+    mPres_line << "Pres: ";
+    mPres_line << setw(3) << mCurrentPressure << " ";
+    mPres_line << setw(3) << mInputPressure << " Pa";
+
+    mFan_line.str("");
+    mFan_line << " Fan: ";
+    mFan_line << setw(3) << mCurrentFanSpeed / 10 << " ";
+    mFan_line << setw(3) << mInputFanSpeed / 10 << " %";
 }
 
 void State::updateOLED() {
-    mDisplay.text(mCO2_line, 0, 0);
-    mDisplay.text(mTemp_line, 0, 9);
-    mDisplay.text(mRH_line, 0, 18);
+    bool gettingPressureInput = mTargetPressure != mInputPressure;
+    bool gettingFanSpeedInput = mTargetFanSpeed != mInputFanSpeed;
+
+    mDisplay.fill(0);
+
+    mDisplay.text(mCO2_line.str(), 0, 0);
+    mDisplay.text(mTemp_line.str(), 0, 9);
+    mDisplay.text(mRH_line.str(), 0, 18);
     mDisplay.text(mHeader_line, 0, 36);
-    mDisplay.text(mPres_line, 0, 45);
-    mDisplay.text(mFan_line, 0, 54);
+    if (gettingPressureInput) {
+        mDisplay.rect(0, 44, 128, 9, 1, true);
+    } else if (gettingFanSpeedInput) {
+        mDisplay.rect(0, 53, 128, 9, 1, true);
+    } else if (mMode_auto) {
+        mDisplay.rect(74, 44, 32, 9, 1);
+    } else {
+        mDisplay.rect(74, 53, 32, 9, 1);
+    }
+    mDisplay.text(mPres_line.str(), 0, 45, !gettingPressureInput);
+    mDisplay.text(mFan_line.str(), 0, 54, !gettingFanSpeedInput);
+
     mDisplay.show();
 }
 
 void State::updateCout() {
-    cout << mCO2_line << endl;
-    cout << mTemp_line << endl;
-    cout << mRH_line << endl;
+    cout << mCO2_line.str() << endl;
+    cout << mTemp_line.str() << endl;
+    cout << mRH_line.str() << endl;
     cout << mHeader_line << endl;
-    cout << mPres_line << endl;
-    cout << mFan_line << endl;
+    cout << mPres_line.str() << endl;
+    cout << mFan_line.str() << endl;
     printf("----------------\n");
 }
 
@@ -70,20 +96,87 @@ void State::update() {
     fetchValues();
     writeLines();
     updateOLED();
-    updateCout();
+    //updateCout();
 }
 
 void State::toggleMode() {
     mMode_auto = !mMode_auto;
+    mInputPressure = mTargetPressure;
+    mInputFanSpeed = mTargetFanSpeed;
     update();
 }
 
-void State::setTargetFanSpeed() {
-    mTargetFanSpeed = mFanController->getFanSpeed();
+void State::setTarget() {
+    if (mMode_auto) {
+        mTargetPressure = mInputPressure;
+    } else {
+        mTargetFanSpeed = mInputFanSpeed;
+    }
+}
+
+void State::adjustInputFanSpeed(int x) {
+    int temp = mInputFanSpeed + x;
+    if (0 < temp) {
+        if (temp < 1000) {
+            mInputFanSpeed = temp;
+        } else {
+            mInputFanSpeed = 1000;
+        }
+    } else {
+        mInputFanSpeed = 0;
+    }
+}
+
+void State::adjustInputPressure(int x) {
+    int temp = mInputPressure + x;
+    if (0 < temp) {
+        if (temp < 125) {
+            mInputPressure = temp;
+        } else {
+            mInputPressure = 125;
+        }
+    } else {
+        mInputPressure = 0;
+    }
+}
+
+void State::clockwise() {
+    if (mMode_auto) {
+        adjustInputPressure(+1);
+    } else {
+        adjustInputFanSpeed(+10);
+    }
     update();
 }
 
-void State::setTargetPressure() {
-    mTargetPressure = mSDP600->getPressure();
+void State::counter_clockwise() {
+    if (mMode_auto) {
+        adjustInputPressure(-1);
+    } else {
+        adjustInputFanSpeed(-10);
+    }
     update();
+}
+
+void State::adjustFan() {
+    if (mMode_auto) {
+        uint32_t currTime = time_us_32();
+        if (mTargetPressure > MIN_PRESSURE_TARGET) {
+            if (currTime - mPrevPressureAdjustment > PRESSURE_CHECK_LATENCY_US) {
+                int16_t currentPressure = mSDP600->getPressure() / 240;
+                int16_t targetDelta = mTargetPressure - currentPressure;
+                if (abs(targetDelta) > PRESSURE_TARGET_ACCURACY) {
+                    int newFanSpeed = mCurrentFanSpeed + 10 * targetDelta / 2;
+                    mFanController->setFanSpeed(newFanSpeed);
+                    mPrevPressureAdjustment = currTime;
+                }
+            }
+        } else {
+            if (mFanController->getFanSpeed() != 0)
+                mFanController->setFanSpeed(0);
+        }
+    } else {
+        if (mTargetFanSpeed != mFanController->getFanSpeed())
+            mFanController->setFanSpeed(mTargetFanSpeed);
+    }
 }

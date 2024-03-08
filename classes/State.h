@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <iostream>
+#include <iomanip>
 
 #include "ssd1306.h"
 #include "GMP252.h"
@@ -11,6 +12,11 @@
 #include "I2CHandler.h"
 #include "MIO12V.h"
 #include "SDP600.h"
+
+#define PRESSURE_CHECK_LATENCY_US 1000000
+#define PRESSURE_TARGET_ACCURACY 4
+#define MIN_PRESSURE_TARGET 10
+
 
 class State: public Observer {
 private:
@@ -26,24 +32,28 @@ private:
     float mTemperature;
     float mRH;
 
-    int16_t mCurrentPressure;
-    int16_t mTargetPressure;
     uint16_t mCurrentFanSpeed;
     uint16_t mTargetFanSpeed;
+    uint16_t mInputFanSpeed;
+    int16_t mCurrentPressure;
+    int16_t mTargetPressure;
+    int16_t mInputPressure;
+    uint32_t mPrevPressureAdjustment;
 
-    bool mStateChanged;
-
-    char mCO2_line[17];
-    char mTemp_line[17];
-    char mRH_line[17];
-    char mHeader_line[17];
-    char mPres_line[17];
-    char mFan_line[17];
+    std::stringstream mCO2_line;
+    std::stringstream mTemp_line;
+    std::stringstream mRH_line;
+    const std::string mHeader_line = "     Curr Tar";
+    std::stringstream mPres_line;
+    std::stringstream mFan_line;
 
     void fetchValues();
     void writeLines();
     void updateOLED();
     void updateCout();
+
+    void adjustInputFanSpeed(int x);
+    void adjustInputPressure(int x);
 public:
     State(const std::shared_ptr<I2CHandler>& i2cHandler,
           const std::shared_ptr<GMP252>& gmp252,
@@ -53,10 +63,10 @@ public:
     void update() override;
 
     void toggleMode();
-    void setTargetFanSpeed();
-    void setTargetPressure();
-
-
+    void setTarget();
+    void clockwise();
+    void counter_clockwise();
+    void adjustFan();
 };
 
 

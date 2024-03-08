@@ -1,6 +1,8 @@
 #ifndef PICO_MODBUS_SDP600_H
 #define PICO_MODBUS_SDP600_H
 
+#include <vector>
+
 #include <hardware/i2c.h>
 #include <hardware/gpio.h>
 #include "Subject.h"

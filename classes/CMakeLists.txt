@@ -7,8 +7,6 @@ add_library(${LIBRARY_NAME}
         MIO12V.cpp
         PicoSW.cpp
         Eeprom.cpp
-        Informer.cpp
-        Informer.h
         State.cpp
         State.h
 )

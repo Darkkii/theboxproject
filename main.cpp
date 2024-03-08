@@ -67,17 +67,20 @@ int main()
     auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
     auto rtu_client{ std::make_shared<ModbusClient>(uart) };
 
-    uint16_t targetFanSpeed = 0; // get from eeprom ?
-    int16_t targetPressure = 0; // get from eeprom ?
-    bool manual = true; // get from eeprom ?
-    bool adjust = false; // initially false I think
-
     auto fanController {make_shared<MIO12V>(rtu_client)};
     auto gmp252 {make_shared<GMP252>(rtu_client)};
     auto hmp252 {make_shared<HMP60>(rtu_client)};
     auto sdp600 {make_shared<SDP600>(i2cHandler->getI2CBus(1))};
 
-    State state{i2cHandler, gmp252, hmp252, fanController, sdp600};
+    auto state {make_shared<State>(i2cHandler, gmp252, hmp252, fanController, sdp600)};
+
+    GMP252 dummy_gmp252{rtu_client};
+
+
+    fanController->addObserver(state);
+    gmp252->addObserver(state);
+    hmp252->addObserver(state);
+    sdp600->addObserver(state);
 
     PicoSW picoSW(true, true, true);
     PicoSW_event swEvent;
@@ -182,51 +185,26 @@ int main()
 #endif // USE_MQTT
         if (time_reached(modbus_poll)) {
             modbus_poll = delayed_by_ms(modbus_poll, 3000);
-
-            gmp252.update();
-            hmp60.update();
+            state->update();
         }
+
         while ((swEvent = picoSW.getEvent()) != NO_EVENT) {
             switch (swEvent) {
                 case CLOCKWISE:
-                    if (adjust) {
-                        if (manual) {
-                            if (targetFanSpeed < 1000) targetFanSpeed += 2;
-                        } else {
-                            if (targetPressure < 125) targetPressure += 1;
-                        }
-                    }
+                    state->clockwise();
                     break;
                 case COUNTER_CLOCKWISE:
-                    if (adjust) {
-                        if (manual) {
-                            if (targetFanSpeed > 0) targetFanSpeed -= 2;
-                        } else {
-                            if (targetPressure > 0) targetPressure -= 1;
-                        }
-                    }
+                    state->counter_clockwise();
                     break;
                 case ROT_PRESS:
-                    adjust = !adjust;
+                    state->setTarget();
                     break;
                 case SW_0_PRESS:
-                    manual = !manual;
+                    state->toggleMode();
                     break;
             }
         }
-        if (manual) {
-            if (fanController.getFanSpeed() != targetFanSpeed) {
-                fanController.setFanSpeed(targetFanSpeed);
-            }
-        } else {
-            int16_t currPres = sdp600.getPressure() / 240;
-            if (currPres < targetPressure) {
-                if (targetFanSpeed < 1000) targetFanSpeed += 2;
-                cout << "Pressure adjustment!" << endl;
-            } else if (currPres > targetPressure) {
-                if (targetFanSpeed > 0) targetFanSpeed -= 2;
-                cout << "Pressure adjustment!" << endl;
-            }
-        }
+
+        state->adjustFan();
     }
 }
