@@ -21,6 +21,7 @@ private:
     const std::string mStatusTopic = "controller/status";
     const std::string mSettingsTopic = "controller/settings";
     IPStack mIPStack = IPStack(mNetworkID.c_str(), mNetworkPW.c_str());
+    MQTT::Client<IPStack, Countdown, 256> mMQTTClient = MQTT::Client<IPStack, Countdown, 256>(mIPStack);
     MQTTPacket_connectData mData;
     MQTT::Message mMQTTMessage;
     bool mMQTTConnect();
