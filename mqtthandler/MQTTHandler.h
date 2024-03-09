@@ -14,7 +14,7 @@ private:
     int mBrokerPort = 1883;
     int mRC = 0;
     int mMessageCount = 0;
-    std::string mNetworkID = "PICO-Q59k95";
+    std::string mNetworkID = "FORPONY";
     std::string mNetworkPW = "Q5-9k195";
     std::string mBrokerIP = "192.168.137.1";
     std::string mClientID = "PicoW-G06";
