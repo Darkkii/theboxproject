@@ -40,8 +40,6 @@ public:
     void setBrokerIP(std::string brokerIP);
     void setBrokerPort(int brokerPort);
     void setClientID(std::string clientID);
-    void keepAlive();
-    void update();
 };
 
 #endif /* MQTTHANDLER_H */
