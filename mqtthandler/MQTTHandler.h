@@ -29,7 +29,7 @@ private:
     static void mMQTTMessageHandler(MQTT::MessageData &md);
 
 public:
-    explicit MQTTHandler();
+    MQTTHandler();
     void connect();
     void keepAlive();
     void update();
