@@ -15,8 +15,8 @@ private:
     int mRC = 0;
     int mMessageCount = 0;
     std::string mNetworkID = "FORPONY";
-    std::string mNetworkPW = "Q5-9k195";
-    std::string mBrokerIP = "192.168.137.1";
+    std::string mNetworkPW = "tr4v3ll3r";
+    std::string mBrokerIP = "192.168.1.50";
     std::string mClientID = "PicoW-G06";
     const std::string mStatusTopic = "controller/status";
     const std::string mSettingsTopic = "controller/settings";
