@@ -32,6 +32,8 @@ private:
 public:
     explicit MQTTHandler();
     void connect();
+    void keepAlive();
+    void update();
     void setNetworkID(std::string networkID);
     void setNetworkPW(std::string networkPW);
     void setBrokerIP(std::string brokerIP);
