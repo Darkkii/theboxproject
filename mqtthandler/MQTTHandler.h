@@ -13,18 +13,18 @@
 class MQTTHandler : public Observer, public Subject
 {
 private:
-    bool mMQTTEnabled = false;
-    int mBrokerPort = 1883;
-    int mRC = 0;
-    int mMessageCount = 0;
     std::string mNetworkID = "FORPONY";
     std::string mNetworkPW = "tr4v3ll3r";
     std::string mBrokerIP = "192.168.1.50";
+    int mBrokerPort = 1883;
     std::string mClientID = "PicoW-G06";
-    const std::string mStatusTopic = "controller/status";
-    const std::string mSettingsTopic = "controller/settings";
     IPStack mIPStack = IPStack(mNetworkID.c_str(), mNetworkPW.c_str());
     MQTT::Client<IPStack, Countdown, 256> mMQTTClient = MQTT::Client<IPStack, Countdown, 256>(mIPStack);
+    int mRC = 0;
+    int mMessageCount = 0;
+    bool mMQTTEnabled = false;
+    const std::string mStatusTopic = "controller/status";
+    const std::string mSettingsTopic = "controller/settings";
     MQTTPacket_connectData mData;
     std::vector<std::shared_ptr<Observer>> mObservers;
     bool mMQTTConnect();
