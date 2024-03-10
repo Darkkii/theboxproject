@@ -68,7 +68,6 @@ void MQTTHandler::connect()
 
     if (mMQTTEnabled)
     {
-        mMQTTSubscribe(mStatusTopic);
         mMQTTSubscribe(mSettingsTopic);
     }
 }
