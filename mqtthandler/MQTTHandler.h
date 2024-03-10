@@ -38,6 +38,7 @@ public:
     void connect();
     void send(topicNumber topicNumber, std::string message);
     void keepAlive();
+    void update() override;
     void addObserver(std::shared_ptr<Observer> observer) override;
     void notifyObservers() override;
     void setNetworkID(std::string networkID);
