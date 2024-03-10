@@ -6,8 +6,9 @@
 #include "Countdown.h"
 #include "MQTTClient.h"
 #include "Observer.h"
+#include "Subject.h"
 
-class MQTTHandler : public Observer
+class MQTTHandler : public Observer, public Subject
 {
 private:
     bool mMQTTEnabled = false;
@@ -23,6 +24,7 @@ private:
     IPStack mIPStack = IPStack(mNetworkID.c_str(), mNetworkPW.c_str());
     MQTT::Client<IPStack, Countdown, 256> mMQTTClient = MQTT::Client<IPStack, Countdown, 256>(mIPStack);
     MQTTPacket_connectData mData;
+    std::vector<std::shared_ptr<Observer>> mObservers;
     bool mMQTTConnect();
     bool mMQTTSubscribe(const std::string topic);
     static void sMQTTMessageHandler(MQTT::MessageData &md);
@@ -33,7 +35,8 @@ public:
     void connect();
     void send(topicNumber topicNumber, std::string message);
     void keepAlive();
-    void update();
+    void addObserver(std::shared_ptr<Observer> observer) override;
+    void notifyObservers() override;
     void setNetworkID(std::string networkID);
     void setNetworkPW(std::string networkPW);
     void setBrokerIP(std::string brokerIP);
