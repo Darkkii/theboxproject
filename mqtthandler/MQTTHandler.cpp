@@ -2,9 +2,10 @@
 
 using namespace std;
 
-MQTTHandler::MQTTHandler()
+MQTTHandler::MQTTHandler(messageHandlerFptr messageHandler) :
+    mMessageHandler{ messageHandler }
 {
-    mMQTTClient.setDefaultMessageHandler(sMQTTMessageHandler);
+    mMQTTClient.setDefaultMessageHandler(mMessageHandler);
 }
 
 bool MQTTHandler::mMQTTConnect()
@@ -35,23 +36,13 @@ bool MQTTHandler::mMQTTConnect()
 bool MQTTHandler::mMQTTSubscribe(const string topic)
 {
     // We subscribe QoS2. Messages sent with lower QoS will be delivered using the QoS they were sent with
-    mRC = mMQTTClient.subscribe(topic.c_str(), MQTT::QOS2, sMQTTMessageHandler);
+    mRC = mMQTTClient.subscribe(topic.c_str(), MQTT::QOS2, mMessageHandler);
     if (mRC != 0) {
         printf("rc from MQTT subscribe is %d\n", mRC);
         return false;
     }
     printf("MQTT subscribed\n");
     return true;
-}
-
-void MQTTHandler::sMQTTMessageHandler(MQTT::MessageData &md)
-{
-    MQTT::Message &message = md.message;
-
-    printf("Message arrived: qos %d, retained %d, dup %d, packetid %d\n",
-           message.qos, message.retained, message.dup, message.id);
-    printf("On topic %.*s\n", md.topicName.lenstring.len, md.topicName.lenstring.data);
-    printf("Payload %.*s\n", (int)message.payloadlen, (char *)message.payload);
 }
 
 void MQTTHandler::connect()

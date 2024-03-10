@@ -29,10 +29,11 @@ private:
     std::vector<std::shared_ptr<Observer>> mObservers;
     bool mMQTTConnect();
     bool mMQTTSubscribe(const std::string topic);
-    static void sMQTTMessageHandler(MQTT::MessageData &md);
+    typedef void (*messageHandlerFptr)(MQTT::MessageData &md);
+    messageHandlerFptr mMessageHandler;
 
 public:
-    MQTTHandler();
+    MQTTHandler(messageHandlerFptr messageHandler);
     enum topicNumber : int;
     void connect();
     void send(topicNumber topicNumber, std::string message);
