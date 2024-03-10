@@ -80,7 +80,7 @@ add_subdirectory(sensors)
 add_subdirectory(i2c)
 add_subdirectory(classes)
 add_subdirectory(observer)
-add_subdirectory(mqtthandler)
+# add_subdirectory(mqtthandler)
 
 # Link to pico_stdlib (gpio, time, etc. functions)
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -94,7 +94,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         uart
         classes
         sensors
-        mqtthandler
 )
 
 # Enable usb output, disable uart output
