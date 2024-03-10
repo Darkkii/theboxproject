@@ -25,5 +25,6 @@ target_link_libraries(${LIBRARY_NAME}
         pico_stdlib
         mqtt
         observer
+        PUBLIC
         nlohmann_json::nlohmann_json
 )
