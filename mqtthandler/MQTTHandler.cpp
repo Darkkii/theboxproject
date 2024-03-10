@@ -44,36 +44,6 @@ bool MQTTHandler::mMQTTSubscribe(const string topic)
     return true;
 }
 
-void MQTTHandler::mMQTTSendStatus()
-{
-    char buf[256];
-    mMQTTMessage.retained = false;
-    mMQTTMessage.dup = false;
-    mMQTTMessage.payload = (void *)buf;
-
-    sprintf(buf, "Msg nr: %d QoS 0 message", ++mMessageCount);
-    printf("%s\n", buf);
-    mMQTTMessage.qos = MQTT::QOS0;
-    mMQTTMessage.payloadlen = strlen(buf) + 1;
-    mRC = mMQTTClient.publish(mStatusTopic.c_str(), mMQTTMessage);
-    printf("Publish rc=%d\n", mRC);
-}
-
-void MQTTHandler::mMQTTSendSettings()
-{
-    char buf[256];
-    mMQTTMessage.retained = false;
-    mMQTTMessage.dup = false;
-    mMQTTMessage.payload = (void *)buf;
-
-    sprintf(buf, "Msg nr: %d QoS 1 message", ++mMessageCount);
-    printf("%s\n", buf);
-    mMQTTMessage.qos = MQTT::QOS1;
-    mMQTTMessage.payloadlen = strlen(buf) + 1;
-    mRC = mMQTTClient.publish(mSettingsTopic.c_str(), mMQTTMessage);
-    printf("Publish rc=%d\n", mRC);
-}
-
 void MQTTHandler::sMQTTMessageHandler(MQTT::MessageData &md)
 {
     MQTT::Message &message = md.message;
@@ -100,6 +70,26 @@ void MQTTHandler::connect()
     {
         mMQTTSubscribe(mStatusTopic);
         mMQTTSubscribe(mSettingsTopic);
+    }
+}
+
+void MQTTHandler::send(topicNumber topicNumber, std::string message)
+{
+    if (message.length() < 256)
+    {
+        MQTT::Message mqttMessage;
+        string topic = topicNumber ? mSettingsTopic : mStatusTopic;
+        char buf[256];
+
+        mqttMessage.qos = topicNumber ? MQTT::QOS1 : MQTT::QOS0;
+        mqttMessage.retained = false;
+        mqttMessage.dup = false;
+        mqttMessage.payload = (void *)buf;
+
+        sprintf(buf, message.c_str(), ++mMessageCount);
+        printf("Sent: %s\n", buf);
+        mqttMessage.payloadlen = strlen(buf);
+        mRC = mMQTTClient.publish(topic.c_str(), mqttMessage);
     }
 }
 

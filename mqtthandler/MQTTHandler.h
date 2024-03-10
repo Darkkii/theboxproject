@@ -25,13 +25,13 @@ private:
     MQTTPacket_connectData mData;
     bool mMQTTConnect();
     bool mMQTTSubscribe(const std::string topic);
-    void mMQTTSendStatus();
-    void mMQTTSendSettings();
     static void sMQTTMessageHandler(MQTT::MessageData &md);
 
 public:
     MQTTHandler();
+    enum topicNumber : int;
     void connect();
+    void send(topicNumber topicNumber, std::string message);
     void keepAlive();
     void update();
     void setNetworkID(std::string networkID);
@@ -39,6 +39,11 @@ public:
     void setBrokerIP(std::string brokerIP);
     void setBrokerPort(int brokerPort);
     void setClientID(std::string clientID);
+    enum topicNumber : int
+    {
+        TOPIC_STATUS,
+        TOPIC_SETTINGS
+    };
 };
 
 #endif /* MQTTHANDLER_H */
