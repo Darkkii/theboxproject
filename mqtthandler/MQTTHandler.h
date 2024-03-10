@@ -28,7 +28,7 @@ private:
     bool mMQTTSubscribe(const std::string topic);
     void mMQTTSendStatus();
     void mMQTTSendSettings();
-    static void mMQTTMessageHandler(MQTT::MessageData &md);
+    static void sMQTTMessageHandler(MQTT::MessageData &md);
 
 public:
     MQTTHandler();
