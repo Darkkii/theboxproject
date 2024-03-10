@@ -1,13 +1,8 @@
-// #define MQTT_DEBUG
 #include <stdio.h>
-// #include "IPStack.h"
-// #include "Countdown.h"
-// #include "MQTTClient.h"
 #include "MQTTHandler.h"
 
 
 #define USE_MQTT
-
 
 int main()
 {
