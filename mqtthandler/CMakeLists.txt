@@ -13,10 +13,17 @@ target_include_directories(${LIBRARY_NAME} PUBLIC
         ../paho.mqtt.embedded-c/MQTTClient/src
 )
 
+# # JSON parser
+include(FetchContent)
+
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
 # Link Libraries -- Add each library that the current module needs to this list
 target_link_libraries(${LIBRARY_NAME}
         PRIVATE
         pico_stdlib
         mqtt
         observer
+        nlohmann_json::nlohmann_json
 )
