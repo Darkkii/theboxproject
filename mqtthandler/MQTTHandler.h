@@ -2,6 +2,8 @@
 #define MQTTHANDLER_H
 
 #include <string>
+#include <vector>
+#include <memory>
 #include "IPStack.h"
 #include "Countdown.h"
 #include "MQTTClient.h"
