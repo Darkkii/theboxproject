@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "MQTTHandler.h"
 
+using namespace std;
 
 #define USE_MQTT
 
