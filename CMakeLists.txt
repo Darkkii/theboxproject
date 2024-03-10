@@ -12,6 +12,12 @@ project(pico-modbus C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
+# Set CMP policy to use the NEW format to remove errors when using CMake v3.24+
+if(POLICY CMP0135)
+	cmake_policy(SET CMP0135 NEW)
+	set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
+endif()
+
 # Creates a pico-sdk subdirectory in our project for the libraries
 pico_sdk_init()
 
