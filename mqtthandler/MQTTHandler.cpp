@@ -126,7 +126,7 @@ void MQTTHandler::update()
     if (mMQTTEnabled)
     {
         mMQTTSendStatus();
-        // mMQTTSendSettings();
+        mMQTTSendSettings();
     }
 }
 
