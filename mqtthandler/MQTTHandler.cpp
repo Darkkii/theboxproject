@@ -80,6 +80,7 @@ void MQTTHandler::sMQTTMessageHandler(MQTT::MessageData &md)
 
     printf("Message arrived: qos %d, retained %d, dup %d, packetid %d\n",
            message.qos, message.retained, message.dup, message.id);
+    printf("On topic %.*s\n", md.topicName.lenstring.len, md.topicName.lenstring.data);
     printf("Payload %.*s\n", (int)message.payloadlen, (char *)message.payload);
     // printf("Topic %s", message.)
 }
