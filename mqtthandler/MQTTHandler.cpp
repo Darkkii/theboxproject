@@ -118,6 +118,10 @@ void MQTTHandler::update()
     }
 }
 
+void MQTTHandler::addObserver(shared_ptr<Observer> observer) { mObservers.push_back(observer); }
+
+void MQTTHandler::notifyObservers() { printf("test\n"); for (auto &&observer : mObservers) { observer->update(); } }
+
 void MQTTHandler::setNetworkID(string networkID) { mNetworkID = networkID; }
 
 void MQTTHandler::setNetworkPW(string networkPW) { mNetworkPW = networkPW; }
