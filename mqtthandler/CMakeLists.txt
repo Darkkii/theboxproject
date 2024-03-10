@@ -4,6 +4,7 @@ set(LIBRARY_NAME mqtthandler)
 # Library sources -- Add each .cpp or .c file from the folder here
 add_library(${LIBRARY_NAME}
         MQTTHandler.cpp
+        JSONPacket.cpp
 )
 
 # Include directories -- No need to edit
