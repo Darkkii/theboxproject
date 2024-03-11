@@ -9,6 +9,7 @@
 #include "MQTTClient.h"
 #include "Observer.h"
 #include "Subject.h"
+#include "StatusMessage.h"
 
 class MQTTHandler : public Observer, public Subject
 {
@@ -25,6 +26,7 @@ private:
     bool mMQTTEnabled = false;
     const std::string mStatusTopic = "controller/status";
     const std::string mSettingsTopic = "controller/settings";
+    // StatusMessage mStatusMessage;
     MQTTPacket_connectData mData;
     std::vector<std::shared_ptr<Observer>> mObservers;
     bool mMQTTConnect();
@@ -36,7 +38,7 @@ public:
     MQTTHandler(messageHandlerFptr messageHandler);
     enum topicNumber : int;
     void connect();
-    void send(topicNumber topicNumber, std::string message);
+    void send(topicNumber topicNumber, StatusMessage statusMessage);
     void keepAlive();
     void update() override;
     void addObserver(std::shared_ptr<Observer> observer) override;

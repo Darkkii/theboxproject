@@ -63,8 +63,10 @@ void MQTTHandler::connect()
     }
 }
 
-void MQTTHandler::send(topicNumber topicNumber, std::string message)
+void MQTTHandler::send(topicNumber topicNumber, StatusMessage statusMessage)
 {
+    // mStatusMessage = statusMessage;
+    string message = statusMessage;
     if (message.length() < 256)
     {
         MQTT::Message mqttMessage;
@@ -105,7 +107,7 @@ void MQTTHandler::update()
     if (mMQTTEnabled)
     {
         // TODO: Change to fetch actual data from either JSON object or sensors.
-        send(TOPIC_STATUS, R"({"nr": )" + to_string(mMessageCount) + R"(, "speed": 99, "setpoint": 40, "pressure": 16, "auto": false, "error": false, "co2": 300, "rh": 37, "temp": 20})");
+        // send(TOPIC_STATUS, mStatusMessage);
     }
 }
 
