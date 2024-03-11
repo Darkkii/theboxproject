@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <memory>
 #include "MQTTClient.h"
 #include "MQTTHandler.h"
@@ -47,19 +48,21 @@ int main()
 void messageHandler(MQTT::MessageData &md)
 {
     MQTT::Message &message = md.message;
-    char payload[256] = { 0 };
+    char payload[256];
     strncpy(payload, (char *)message.payload, message.payloadlen);
     string payloadString{ payload };
-    cout << payloadString;
-    SettingsMessage settingsMessage(payloadString);
+    istringstream stream{ payloadString };
+    bool mode = true;
+    int setpoint = 0;
+    stream.ignore(256, ' ');
+    stream >> boolalpha >> mode;
+    stream.ignore(256, ' ');
+    stream.ignore(256, ' ');
+    stream >> setpoint;
 
+    SettingsMessage settingsMessage(mode, setpoint);
 
-    // mqttHandler->notifyObservers();
-
-    // printf("Message arrived: qos %d, retained %d, dup %d, packetid %d\n",
-    //        message.qos, message.retained, message.dup, message.id);
-    // printf("On topic %.*s\n", md.topicName.lenstring.len, md.topicName.lenstring.data);
-    // printf("Payload %.*s\n", message.payloadlen, (char *)message.payload);
-    cout << settingsMessage.getString() << endl;
-    // cout << settingsMessage.getAuto() << endl;
+    mqttHandler->notifyObservers();
+    StatusMessage msg(2, 1, 3, false, false, 2, 3, 30);
+    mqttHandler->send(msg);
 }
