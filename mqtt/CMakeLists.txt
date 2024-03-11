@@ -6,6 +6,8 @@ add_library(${LIBRARY_NAME}
         Countdown.cpp
         IPStack.cpp
         MQTTHandler.cpp
+        StatusMessage.cpp
+        SettingsMessage.cpp
 )
 
 # Include directories -- No need to edit
@@ -21,6 +23,7 @@ target_link_libraries(${LIBRARY_NAME}
         PRIVATE
         pico_stdlib
         observer
+        nlohmann_json::nlohmann_json
         PUBLIC
         pico_cyw43_arch_lwip_poll
 )
