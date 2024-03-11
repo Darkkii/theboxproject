@@ -3,8 +3,7 @@
 
 using namespace nlohmann;
 
-StatusMessage::StatusMessage(int messageNumber = 0,
-                             int speed = 0,
+StatusMessage::StatusMessage(int speed = 0,
                              int setpoint = 0,
                              int pressure = 0,
                              bool mode = false,
@@ -12,28 +11,33 @@ StatusMessage::StatusMessage(int messageNumber = 0,
                              int co2 = 0,
                              int relativeHumidity = 0,
                              int temperature = 0) :
-    mMessageNumber{ messageNumber },
+    mMessageNumber{ 0 },
     mSpeed{ speed },
-    mSetPoint{ setpoint },
+    mSetpoint{ setpoint },
     mPressure{ pressure },
     mAuto{ mode },
     mError{ error },
     mCO2{ co2 },
     mRelativeHumidity{ relativeHumidity },
     mTemperature{ temperature }
-{
-    mJSONObject = json{ {"nr", mMessageNumber},
-                        {"speed", mSpeed},
-                        {"setpoint", mSetPoint},
-                        {"pressure", mPressure},
-                        {"auto", mAuto},
-                        {"error", mError},
-                        {"co2", mCO2},
-                        {"rh", mRelativeHumidity},
-                        {"temp", mTemperature} };
-}
+{}
 
 StatusMessage::operator const std::string()
 {
+    mJSONObject = ordered_json{ {"nr", mMessageNumber},
+                            {"speed", mSpeed},
+                            {"setpoint", mSetpoint},
+                            {"pressure", mPressure},
+                            {"auto", mAuto},
+                            {"error", mError},
+                            {"co2", mCO2},
+                            {"rh", mRelativeHumidity},
+                            {"temp", mTemperature} };
     return mJSONObject.dump();
+}
+
+void StatusMessage::setMessageNumber(const int messageNumber)
+{
+    mMessageNumber = messageNumber;
+    // mJSONObject.at("nr") = mMessageNumber;
 }

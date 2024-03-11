@@ -3,23 +3,21 @@
 
 #include "nlohmann/json.hpp"
 
-
 class StatusMessage
 {
 private:
     int mMessageNumber;
     int mSpeed;
-    int mSetPoint;
+    int mSetpoint;
     int mPressure;
     bool mAuto;
     bool mError;
     int mCO2;
     int mRelativeHumidity;
     int mTemperature;
-    nlohmann::json mJSONObject;
+    nlohmann::ordered_json mJSONObject;
 public:
-    StatusMessage(int messageNumber,
-                  int speed,
+    StatusMessage(int speed,
                   int setpoint,
                   int pressure,
                   bool mode,
@@ -28,6 +26,7 @@ public:
                   int relativeHumidity,
                   int temperature);
     operator const std::string();
+    void setMessageNumber(const int messageNumber);
 };
 
 #endif /* STATUSMESSAGE_H */
