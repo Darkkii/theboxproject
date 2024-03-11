@@ -1,17 +1,15 @@
 #ifndef SETTINGSMESSAGE_H
 #define SETTINGSMESSAGE_H
 
-#include "nlohmann/json.hpp"
-
 class SettingsMessage
 {
 private:
-    nlohmann::json mJSONObject;
+    bool mMode;
+    int mSetpoint;
 public:
-    explicit SettingsMessage(const std::string message);
-    std::string getString();
+    SettingsMessage(const bool mode, const int setpoint);
     bool getAuto();
-    int getSetPoint();
+    int getSetpoint();
 };
 
 #endif /* SETTINGSMESSAGE_H */
