@@ -13,9 +13,10 @@
 #include "MIO12V.h"
 #include "SDP600.h"
 
-#define PRESSURE_CHECK_LATENCY_US 2000000
+#define PRESSURE_ADJUSTMENT_LATENCY_US 2000000
 #define PRESSURE_TARGET_ACCURACY 4
 #define MIN_PRESSURE_TARGET 10
+#define OLED_MAX_STR_WIDTH 16
 
 
 class State: public Observer {
@@ -28,6 +29,7 @@ private:
     std::shared_ptr<State> mState;
 
     bool mMode_auto;
+    bool mMQTT_input;
     float mCO2;
     float mTemperature;
     float mRH;
@@ -38,7 +40,9 @@ private:
     int16_t mCurrentPressure;
     int16_t mTargetPressure;
     int16_t mInputPressure;
-    uint32_t mPrevPressureAdjustment;
+
+    absolute_time_t mFanAdjustmentTimer;
+    uint32_t mPrevFanAdjustment_us;
 
     std::stringstream mCO2_line;
     std::stringstream mTemp_line;
@@ -47,13 +51,26 @@ private:
     std::stringstream mPres_line;
     std::stringstream mFan_line;
 
+    enum MQTTinput_stage_enum {
+        networkID,
+        networkPW,
+        brokerIP
+    };
+
+    enum MQTTinput_stage_enum mMQTT_input_stage;
+
+    char mInputChar;
+
+    std::string mNetworkID;
+    std::string mNetworkPW;
+    std::string mBrokerIP;
+
     void fetchValues();
     void writeLines();
     void updateOLED();
+    void OLED_VentStatus();
+    void OLED_MQTTCredentials();
     void updateCout();
-
-    void adjustInputFanSpeed(int x);
-    void adjustInputPressure(int x);
 public:
     State(const std::shared_ptr<I2CHandler>& i2cHandler,
           const std::shared_ptr<GMP252>& gmp252,
@@ -63,9 +80,13 @@ public:
     void update() override;
 
     void toggleMode();
+    void toggle_MQTT_input();
     void setTarget();
+    void backspace();
     void clockwise();
     void counter_clockwise();
+    void adjustInputFanSpeed(int x);
+    void adjustInputPressure(int x);
     void adjustFan();
 };
 

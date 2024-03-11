@@ -3,13 +3,12 @@
 
 #include <vector>
 #include <memory>
+
 #include "ModbusClient.h"
 #include "ModbusRegister.h"
 #include "Sensor32bitRegister.h"
-#include "Observer.h"
-#include "Subject.h"
 
-class HMP60 : public Subject
+class HMP60
 {
 private:
     const int mModbusAddress = 241;
@@ -22,7 +21,6 @@ private:
     ModbusRegister mErrorStatusRegister;
     ModbusRegister mErrorCodeRegisterLow;
     ModbusRegister mErrorCodeRegisterHigh;
-    std::vector<std::shared_ptr<Observer>> mObservers;
     enum modbusRegisterAddress
     {
         RH_REGISTER_LOW = 0x0000,
@@ -41,8 +39,6 @@ public:
     float getTemperature();
     uint32_t getErrorStatus();
     void update();
-    void addObserver(std::shared_ptr<Observer> observer) override;
-    void notifyObservers() override;
 };
 
 #endif /* HMP60_H */

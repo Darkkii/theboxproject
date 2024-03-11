@@ -37,7 +37,6 @@
 #define BAUD_RATE 9600
 
 //#define USE_MQTT
-//#define USE_SSD1306
 
 
 #ifdef USE_MQTT
@@ -57,11 +56,10 @@ using namespace std;
 
 int main()
 {
-    auto i2cHandler {make_shared<I2CHandler>()};
-
-    // Initialize chosen serial port
     stdio_init_all();
     printf("\nBoot\n");
+
+    auto i2cHandler {make_shared<I2CHandler>()};
 
     auto modbus_poll = make_timeout_time_ms(3000);
     auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE) };
@@ -75,15 +73,9 @@ int main()
     auto state {make_shared<State>(i2cHandler, gmp252, hmp252, fanController, sdp600)};
 
     fanController->addObserver(state);
-    gmp252->addObserver(state);
-    hmp252->addObserver(state);
-    sdp600->addObserver(state);
 
-    PicoSW picoSW(true, true, true);
+    PicoSW picoSW(true, true, true, true, true);
     PicoSW_event swEvent;
-#ifdef USE_SSD1306
-    ssd1306 display(i2cHandler->getI2CBus(1));
-#endif // USE_SSD1306
 
 #ifdef USE_MQTT
     //IPStack ipstack("SSID", "PASSWORD"); // example
@@ -184,6 +176,8 @@ int main()
             modbus_poll = delayed_by_ms(modbus_poll, 3000);
             gmp252->update();
             hmp252->update();
+            sdp600->update();
+            state->update();
         }
 
         while ((swEvent = picoSW.getEvent()) != NO_EVENT) {
@@ -199,6 +193,12 @@ int main()
                     break;
                 case SW_0_PRESS:
                     state->toggleMode();
+                    break;
+                case SW_1_PRESS:
+                    state->backspace();
+                    break;
+                case SW_2_PRESS:
+                    state->toggle_MQTT_input();
                     break;
             }
         }

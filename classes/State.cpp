@@ -11,13 +11,14 @@ State::State(const shared_ptr<I2CHandler> &i2cHandler,
         mGMP252{gmp252},
         mHMP60{hmp60},
         mFanController(mio12V),
-        mSDP600{sdp600} {
-    mMode_auto = true;
-    mTargetFanSpeed = 0; // get from EEPROM
-    mTargetPressure = 0; // get from EEPROM
+        mSDP600{sdp600},
+        mMode_auto(true),
+        mMQTT_input(false),
+        mTargetFanSpeed(0), // get from EEPROM
+        mTargetPressure(0), // get from EEPROM
+        mPrevFanAdjustment_us(0),
+        mInputChar('0') {
     mFanController->setFanSpeed(mTargetFanSpeed);
-    mPrevPressureAdjustment = 0;
-
     mInputFanSpeed = mTargetFanSpeed;
     mInputPressure = mTargetPressure;
 }
@@ -57,7 +58,7 @@ void State::writeLines() {
     mFan_line << setw(3) << mInputFanSpeed / 10 << " %";
 }
 
-void State::updateOLED() {
+void State::OLED_VentStatus() {
     bool gettingPressureInput = mTargetPressure != mInputPressure;
     bool gettingFanSpeedInput = mTargetFanSpeed != mInputFanSpeed;
 
@@ -71,15 +72,83 @@ void State::updateOLED() {
         mDisplay.rect(0, 44, 128, 9, 1, true);
     } else if (gettingFanSpeedInput) {
         mDisplay.rect(0, 53, 128, 9, 1, true);
-    } else if (mMode_auto) {
-        mDisplay.text(">", 73, 45);
     } else {
-        mDisplay.text(">", 73, 54);
+        mDisplay.text(">", 73, mMode_auto ? 45 : 54);
     }
+
     mDisplay.text(mPres_line.str(), 0, 45, !gettingPressureInput);
     mDisplay.text(mFan_line.str(), 0, 54, !gettingFanSpeedInput);
 
     mDisplay.show();
+}
+
+void State::OLED_MQTTCredentials() {
+    mDisplay.fill(0);
+
+    size_t x;
+    string cutString;
+    bool tooLong;
+
+    switch (mMQTT_input_stage) {
+        case brokerIP:
+            x = mBrokerIP.length();
+            tooLong = x >= OLED_MAX_STR_WIDTH;
+            if (tooLong) {
+                cutString = mBrokerIP;
+                cutString.erase(0, x - (OLED_MAX_STR_WIDTH - 1));
+            }
+            mDisplay.text("Broker ID:",0,44);
+            mDisplay.text(tooLong ? cutString : mBrokerIP, 0, 53);
+        case networkPW:
+            x = mNetworkPW.length();
+            tooLong = x >= OLED_MAX_STR_WIDTH;
+            if (tooLong) {
+                cutString = mNetworkPW;
+                cutString.erase(0,x - (OLED_MAX_STR_WIDTH - 1));
+            }
+            mDisplay.text("Network PW:",0,22);
+            mDisplay.text(tooLong ? cutString : mNetworkPW, 0, 31);
+        case networkID:
+            x = mNetworkID.length();
+            tooLong = x >= OLED_MAX_STR_WIDTH;
+            if (tooLong) {
+                cutString = mNetworkID;
+                cutString.erase(0, x - (OLED_MAX_STR_WIDTH - 1));
+            }
+            mDisplay.text("Network ID:",0,0);
+            mDisplay.text(tooLong ? cutString : mNetworkID, 0, 9);
+    }
+
+    switch (mMQTT_input_stage) {
+        case networkID:
+            x = mNetworkID.length();
+            tooLong = x > OLED_MAX_STR_WIDTH - 1;
+            mDisplay.rect(tooLong ? 7 * (OLED_MAX_STR_WIDTH + 1) + 1 : x * 8, 8, 8, 10, 1, true);
+            mDisplay.text(&mInputChar, tooLong ? 7 * (OLED_MAX_STR_WIDTH + 1) + 1 : x * 8, 9, 0);
+            break;
+        case networkPW:
+            x = mNetworkPW.length();
+            tooLong = x > OLED_MAX_STR_WIDTH - 2;
+            mDisplay.rect(tooLong ? 7 * (OLED_MAX_STR_WIDTH + 1) + 1 : x * 8, 30, 8, 10, 1, true);
+            mDisplay.text(&mInputChar, tooLong ? 7 * (OLED_MAX_STR_WIDTH + 1) + 1  : x * 8, 31, 0);
+            break;
+        case brokerIP:
+            x = mBrokerIP.length();
+            tooLong = x > OLED_MAX_STR_WIDTH - 2;
+            mDisplay.rect(tooLong ? 7 * (OLED_MAX_STR_WIDTH + 1) + 1  : x * 8, 52, 8, 10, 1, true);
+            mDisplay.text(&mInputChar, tooLong ? 7 * (OLED_MAX_STR_WIDTH + 1) + 1  : x * 8, 53, 0);
+            break;
+    }
+
+    mDisplay.show();
+}
+
+void State::updateOLED() {
+    if (mMQTT_input) {
+        OLED_MQTTCredentials();
+    } else {
+        OLED_VentStatus();
+    }
 }
 
 void State::updateCout() {
@@ -96,22 +165,155 @@ void State::update() {
     fetchValues();
     writeLines();
     updateOLED();
-    updateCout();
+    //updateCout();
+}
+
+void State::toggle_MQTT_input() {
+    mMQTT_input = !mMQTT_input;
+    if (mMQTT_input) {
+        mNetworkID = "";
+        mNetworkPW = "";
+        mBrokerIP = "";
+        mInputChar = '0';
+        mMQTT_input_stage = networkID;
+    }
+    update();
 }
 
 void State::toggleMode() {
-    mMode_auto = !mMode_auto;
-    mInputPressure = mTargetPressure;
-    mInputFanSpeed = mCurrentFanSpeed;
-    mTargetFanSpeed = mCurrentFanSpeed;
+    if (mMQTT_input) {
+        switch (mMQTT_input_stage) {
+            case networkID:
+                mMQTT_input_stage = networkPW;
+                break;
+            case networkPW:
+                mMQTT_input_stage = brokerIP;
+                break;
+            case brokerIP:
+                mMQTT_input = false;
+                // connect and shit
+                break;
+        }
+    } else {
+        mMode_auto = !mMode_auto;
+        mInputPressure = mTargetPressure;
+        mInputFanSpeed = mCurrentFanSpeed;
+        mTargetFanSpeed = mCurrentFanSpeed;
+    }
     update();
 }
 
 void State::setTarget() {
-    if (mMode_auto) {
-        mTargetPressure = mInputPressure;
+    if (mMQTT_input) {
+        switch (mMQTT_input_stage) {
+            case networkID:
+                mNetworkID += mInputChar;
+                break;
+            case networkPW:
+                mNetworkPW += mInputChar;
+                break;
+            case brokerIP:
+                mBrokerIP += mInputChar;
+                break;
+        }
+    } else { // fan control
+        if (mMode_auto) {
+            mTargetPressure = mInputPressure;
+        } else {
+            mTargetFanSpeed = mInputFanSpeed;
+        }
+    }
+    update();
+}
+
+void State::backspace() {
+    if (mMQTT_input) {
+        switch (mMQTT_input_stage) {
+            case networkID:
+                if (mNetworkID.length() > 0) {
+                    mNetworkID.pop_back();
+                } else {
+                    mMQTT_input = false;
+                }
+                break;
+            case networkPW:
+                if (mNetworkPW.length() > 0) {
+                    mNetworkID.pop_back();
+                } else {
+                    mMQTT_input_stage = networkID;
+                }
+                break;
+            case brokerIP:
+                if (mNetworkID.length() > 0) {
+                    mNetworkID.pop_back();
+                } else {
+                    mMQTT_input_stage = networkPW;
+                }
+                break;
+        }
     } else {
-        mTargetFanSpeed = mInputFanSpeed;
+        if (mMode_auto) {
+            mInputPressure = mTargetPressure;
+        } else {
+            mInputFanSpeed = mTargetFanSpeed;
+        }
+    }
+    update();
+}
+
+void State::clockwise() {
+    if (mMQTT_input) {
+        switch (mInputChar) {
+            case '9':
+                mInputChar = 'A';
+                update();
+                break;
+            case 'Z':
+                mInputChar = 'a';
+                update();
+                break;
+            case 'z':
+                break;
+            default:
+                ++mInputChar;
+                update();
+                break;
+        }
+    } else {
+        if (mMode_auto) {
+            adjustInputPressure(+1);
+        } else {
+            adjustInputFanSpeed(+10);
+        }
+        update();
+    }
+}
+
+void State::counter_clockwise() {
+    if (mMQTT_input) {
+        switch (mInputChar) {
+            case '0':
+                break;
+            case 'A':
+                mInputChar = '9';
+                update();
+                break;
+            case 'a':
+                mInputChar = 'Z';
+                update();
+                break;
+            default:
+                --mInputChar;
+                update();
+                break;
+        }
+    } else {
+        if (mMode_auto) {
+            adjustInputPressure(-1);
+        } else {
+            adjustInputFanSpeed(-10);
+        }
+        update();
     }
 }
 
@@ -141,43 +343,28 @@ void State::adjustInputPressure(int x) {
     }
 }
 
-void State::clockwise() {
-    if (mMode_auto) {
-        adjustInputPressure(+1);
-    } else {
-        adjustInputFanSpeed(+10);
-    }
-    update();
-}
-
-void State::counter_clockwise() {
-    if (mMode_auto) {
-        adjustInputPressure(-1);
-    } else {
-        adjustInputFanSpeed(-10);
-    }
-    update();
-}
-
 void State::adjustFan() {
     if (mMode_auto) {
-        uint32_t currTime = time_us_32();
-        if (mTargetPressure > MIN_PRESSURE_TARGET) {
-            if (currTime - mPrevPressureAdjustment > PRESSURE_CHECK_LATENCY_US) {
+        uint32_t curr_time_us = time_us_32();
+        if (curr_time_us - mPrevFanAdjustment_us > PRESSURE_ADJUSTMENT_LATENCY_US) {
+            mPrevFanAdjustment_us = curr_time_us;
+            if (mTargetPressure > MIN_PRESSURE_TARGET) {
+                mSDP600->update();
                 int16_t currentPressure = mSDP600->getPressure() / 240;
                 int16_t targetDelta = mTargetPressure - currentPressure;
                 if (abs(targetDelta) > PRESSURE_TARGET_ACCURACY) {
                     int newFanSpeed = mCurrentFanSpeed + 10 * targetDelta / 2;
                     mFanController->setFanSpeed(newFanSpeed);
-                    mPrevPressureAdjustment = currTime;
+                    update();
                 }
-            }
-        } else {
-            if (mFanController->getFanSpeed() != 0)
+            } else if (mFanController->getFanSpeed() != 0) {
                 mFanController->setFanSpeed(0);
+                update();
+            }
         }
     } else {
         if (mTargetFanSpeed != mFanController->getFanSpeed())
             mFanController->setFanSpeed(mTargetFanSpeed);
+        update();
     }
 }

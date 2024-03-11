@@ -3,13 +3,12 @@
 
 #include <vector>
 #include <memory>
+
 #include "ModbusClient.h"
 #include "ModbusRegister.h"
 #include "Sensor32bitRegister.h"
-#include "Observer.h"
-#include "Subject.h"
 
-class GMP252 : public Subject
+class GMP252
 {
 private:
     const int mModbusAddress = 240;
@@ -21,7 +20,6 @@ private:
     ModbusRegister mTemperatureRegisterHigh;
     ModbusRegister mDeviceStatusRegister;
     ModbusRegister mCO2StatusRegister;
-    std::vector<std::shared_ptr<Observer>> mObservers;
     enum modbusRegisterAddress
     {
         CO2_REGISTER_LOW = 0x0000,
@@ -40,8 +38,6 @@ public:
     uint16_t getDeviceStatus();
     uint16_t getCO2Status();
     void update();
-    void addObserver(std::shared_ptr<Observer> observer) override;
-    void notifyObservers() override;
 };
 
 #endif /* GMP252_H */
