@@ -14,19 +14,20 @@
 class MQTTHandler : public Observer, public Subject
 {
 private:
-    std::string mNetworkID = "FORPONY";
-    std::string mNetworkPW = "tr4v3ll3r";
-    std::string mBrokerIP = "192.168.1.50";
+    std::string mNetworkID = "PICOQ5-9k195";
+    std::string mNetworkPW = "Q5-9k195";
+    std::string mBrokerIP = "192.168.137.1";
     int mBrokerPort = 1883;
     std::string mClientID = "PicoW-G06";
-    IPStack mIPStack = IPStack(mNetworkID.c_str(), mNetworkPW.c_str());
-    MQTT::Client<IPStack, Countdown, 256> mMQTTClient = MQTT::Client<IPStack, Countdown, 256>(mIPStack);
+    std::shared_ptr<IPStack> mIPStack;
+    // IPStack *mIPStack;
+    // IPStack mIPStack; // TODO: move to init list
+    std::shared_ptr<MQTT::Client<IPStack, Countdown, 256>> mMQTTClient;
     int mRC = 0;
     int mMessageCount = 0;
     bool mMQTTEnabled = false;
     const std::string mStatusTopic = "controller/status";
     const std::string mSettingsTopic = "controller/settings";
-    // StatusMessage mStatusMessage;
     MQTTPacket_connectData mData;
     std::vector<std::shared_ptr<Observer>> mObservers;
     bool mMQTTConnect();
@@ -38,7 +39,7 @@ public:
     MQTTHandler(messageHandlerFptr messageHandler);
     enum topicNumber : int;
     void connect();
-    void send(topicNumber topicNumber, StatusMessage statusMessage);
+    void send(StatusMessage statusMessage);
     void keepAlive();
     void update() override;
     void addObserver(std::shared_ptr<Observer> observer) override;
@@ -46,8 +47,6 @@ public:
     void setNetworkID(std::string networkID);
     void setNetworkPW(std::string networkPW);
     void setBrokerIP(std::string brokerIP);
-    void setBrokerPort(int brokerPort);
-    void setClientID(std::string clientID);
     enum topicNumber : int
     {
         TOPIC_STATUS,
