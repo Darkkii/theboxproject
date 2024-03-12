@@ -70,7 +70,7 @@ int main()
     PicoSW_event swEvent;
 
     // mqttHandler->connect("PICOQ5-9k195", "Q5-9k195", "192.168.137.1");
-    if (!mqttHandler->connect("asd", "asd", "asd")) { // get EEPROM
+    if (!mqttHandler->connect("asd", "aasdasdsd", "1.1.1.1")) { // get EEPROM
         mqttHandler->connect(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
     }
     auto mqttTimeout = make_timeout_time_ms(5000);
