@@ -12,6 +12,12 @@ project(pico-modbus C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
+# Set CMP policy to use the NEW format to remove errors when using CMake v3.24+
+if(POLICY CMP0135)
+	cmake_policy(SET CMP0135 NEW)
+	set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
+endif()
+
 # Creates a pico-sdk subdirectory in our project for the libraries
 pico_sdk_init()
 
@@ -81,6 +87,12 @@ add_subdirectory(i2c)
 add_subdirectory(classes)
 add_subdirectory(observer)
 
+# # JSON parser
+include(FetchContent)
+
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
 # Link to pico_stdlib (gpio, time, etc. functions)
 target_link_libraries(${PROJECT_NAME} PRIVATE
         pico_stdlib
@@ -94,6 +106,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         classes
         sensors
         i2c
+        nlohmann_json::nlohmann_json
 )
 
 # Enable usb output, disable uart output

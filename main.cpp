@@ -33,31 +33,23 @@
 #define UART_TX_PIN 4
 #define UART_RX_PIN 5
 #endif
+#include "MQTTHandler.h"
+#include "SettingsMessage.h"
+#include "nlohmann/json.hpp"
 
 #define BAUD_RATE 9600
 
-//#define USE_MQTT
+#define USE_MQTT
 
-
-#ifdef USE_MQTT
-void messageArrived(MQTT::MessageData &md)
-{
-    MQTT::Message &message = md.message;
-
-    printf("Message arrived: qos %d, retained %d, dup %d, packetid %d\n",
-           message.qos, message.retained, message.dup, message.id);
-    printf("Payload %s\n", (char *)message.payload);
-}
-
-static const char *topic = "test-topic";
-#endif // USE_MQTT
-
-using namespace std;
+void messageHandler(MQTT::MessageData &md);
+// static global pointer to allow mqtt callback function to access public member functions
+static shared_ptr<MQTTHandler> mqttHandler;
 
 int main()
 {
     stdio_init_all();
     printf("\nBoot\n");
+    mqttHandler = make_shared<MQTTHandler>(messageHandler);
 
     auto i2cHandler {make_shared<I2CHandler>()};
 
@@ -70,7 +62,7 @@ int main()
     auto hmp252 {make_shared<HMP60>(rtu_client)};
     auto sdp600 {make_shared<SDP600>(i2cHandler->getI2CBus(1))};
 
-    auto state {make_shared<State>(i2cHandler, gmp252, hmp252, fanController, sdp600)};
+    auto state {make_shared<State>(i2cHandler, gmp252, hmp252, fanController, sdp600, mqttHandler)};
 
     fanController->addObserver(state);
 
@@ -78,100 +70,20 @@ int main()
     PicoSW_event swEvent;
 
 #ifdef USE_MQTT
-    //IPStack ipstack("SSID", "PASSWORD"); // example
-    IPStack ipstack("SmartIotMQTT", "SmartIot"); // example
-    auto client = MQTT::Client<IPStack, Countdown>(ipstack);
-
-    int rc = ipstack.connect("192.168.1.10", 1883);
-    if (rc != 1) {
-        printf("rc from TCP connect is %d\n", rc);
-    }
-
-    printf("MQTT connecting\n");
-    MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
-    data.MQTTVersion = 3;
-    data.clientID.cstring = (char *)"PicoW-sample";
-    rc = client.connect(data);
-    if (rc != 0) {
-        printf("rc from MQTT connect is %d\n", rc);
-        while (true) {
-            tight_loop_contents();
-        }
-    }
-    printf("MQTT connected\n");
-
-    // We subscribe QoS2. Messages sent with lower QoS will be delivered using the QoS they were sent with
-    rc = client.subscribe(topic, MQTT::QOS2, messageArrived);
-    if (rc != 0) {
-        printf("rc from MQTT subscribe is %d\n", rc);
-    }
-    printf("MQTT subscribed\n");
-
-    auto mqtt_send = make_timeout_time_ms(2000);
-    int mqtt_qos = 0;
-    int msg_count = 0;
-#endif // USE_MQTT
+    mqttHandler->connect();
+    auto mqttTimeout = make_timeout_time_ms(5000);
+#endif
 
     while (true) {
 #ifdef USE_MQTT
-        if (time_reached(mqtt_send)) {
-            mqtt_send = delayed_by_ms(mqtt_send, 2000);
-            if (!client.isConnected()) {
-                printf("Not connected...\n");
-                rc = client.connect(data);
-                if (rc != 0) {
-                    printf("rc from MQTT connect is %d\n", rc);
-                }
-
-            }
-            char buf[100];
-            int rc = 0;
-            MQTT::Message message;
-            message.retained = false;
-            message.dup = false;
-            message.payload = (void *)buf;
-            switch (mqtt_qos) {
-                case 0:
-                    // Send and receive QoS 0 message
-                    sprintf(buf, "Msg nr: %d QoS 0 message", ++msg_count);
-                    printf("%s\n", buf);
-                    message.qos = MQTT::QOS0;
-                    message.payloadlen = strlen(buf) + 1;
-                    rc = client.publish(topic, message);
-                    printf("Publish rc=%d\n", rc);
-                    ++mqtt_qos;
-                    break;
-                case 1:
-                    // Send and receive QoS 1 message
-                    sprintf(buf, "Msg nr: %d QoS 1 message", ++msg_count);
-                    printf("%s\n", buf);
-                    message.qos = MQTT::QOS1;
-                    message.payloadlen = strlen(buf) + 1;
-                    rc = client.publish(topic, message);
-                    printf("Publish rc=%d\n", rc);
-                    ++mqtt_qos;
-                    break;
-#if MQTTCLIENT_QOS2
-                case 2:
-                    // Send and receive QoS 2 message
-                    sprintf(buf, "Msg nr: %d QoS 2 message", ++msg_count);
-                    printf("%s\n", buf);
-                    message.qos = MQTT::QOS2;
-                    message.payloadlen = strlen(buf) + 1;
-                    rc = client.publish(topic, message);
-                    printf("Publish rc=%d\n", rc);
-                    ++mqtt_qos;
-                    break;
-#endif // MQTTCLIENT_QOS2
-                default:
-                    mqtt_qos = 0;
-                    break;
-            }
+        if (time_reached(mqttTimeout))
+        {
+            mqttHandler->update();
+            mqttTimeout = make_timeout_time_ms(5000);
         }
 
-        cyw43_arch_poll(); // obsolete? - see below
-        client.yield(100); // socket that client uses calls cyw43_arch_poll()
-#endif // USE_MQTT
+        mqttHandler->keepAlive();
+#endif
         if (time_reached(modbus_poll)) {
             modbus_poll = delayed_by_ms(modbus_poll, 3000);
             gmp252->update();
@@ -204,5 +116,28 @@ int main()
         }
 
         state->adjustFan();
+
     }
+}
+
+void messageHandler(MQTT::MessageData &md)
+{
+    MQTT::Message &message = md.message;
+    char payload[256];
+    strncpy(payload, (char *)message.payload, message.payloadlen);
+    string payloadString{ payload };
+    istringstream stream{ payloadString };
+    bool mode = true;
+    int setpoint = 0;
+    stream.ignore(256, ' ');
+    stream >> boolalpha >> mode;
+    stream.ignore(256, ' ');
+    stream.ignore(256, ' ');
+    stream >> setpoint;
+
+    SettingsMessage settingsMessage(mode, setpoint);
+
+    mqttHandler->notifyObservers();
+    StatusMessage msg(2, 1, 3, false, false, 2, 3, 30);
+    mqttHandler->send(msg);
 }

@@ -14,23 +14,26 @@
 #include "lwip/tcp.h"
 
 
-class IPStack {
+class IPStack
+{
 public:
     IPStack(const char *ssid, const char *pw);
+    void retry(const char *ssid, const char *pw);
     int connect(const char *hostname, int port);
     int connect(uint32_t hostname, int port);
     int read(unsigned char *buffer, int len, int timeout);
     int write(unsigned char *buffer, int len, int timeout);
     int disconnect();
+    bool isLinkUp();
     // lwip callback functions
     static err_t tcp_client_sent(void *arg, struct tcp_pcb *tpcb, u16_t len);
-    static err_t tcp_client_poll(void *arg, struct tcp_pcb *tpcb) ;
+    static err_t tcp_client_poll(void *arg, struct tcp_pcb *tpcb);
     static void tcp_client_err(void *arg, err_t err);
     static err_t tcp_client_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
     static err_t tcp_client_connected(void *arg, struct tcp_pcb *tpcb, err_t err);
 
-    static const int BUF_SIZE{2048};
-    static const int POLL_TIME_S{5};
+    static const int BUF_SIZE{ 2048 };
+    static const int POLL_TIME_S{ 5 };
 private:
     std::unique_ptr<struct tcp_pcb> tcp_pcb;
     ip_addr_t remote_addr;
@@ -40,6 +43,7 @@ private:
     uint16_t wr; // write index
     uint16_t rd; // read index
     bool connected;
+    bool linkup;
 };
 
 

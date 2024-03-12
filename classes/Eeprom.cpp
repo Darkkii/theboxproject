@@ -12,7 +12,7 @@ void Eeprom::write(const uint8_t *writeBuffer, size_t bytesToWrite)
     size_t totalBytesToWrite = bytesToWrite + 2; // +2 address bytes
     uint8_t buffer[totalBytesToWrite];
 
-    for (int i = 0; i < totalBytesToWrite; i++)
+    for (size_t i = 0; i < totalBytesToWrite; i++)
     {
         if (i < 2)
         {

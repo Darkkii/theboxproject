@@ -6,12 +6,14 @@ State::State(const shared_ptr<I2CHandler> &i2cHandler,
              const shared_ptr<GMP252> &gmp252,
              const shared_ptr<HMP60> &hmp60,
              const shared_ptr<MIO12V> &mio12V,
-             const shared_ptr<SDP600> &sdp600) :
+             const shared_ptr<SDP600> &sdp600,
+             const shared_ptr<MQTTHandler> &mqttHandler) :
         mDisplay(i2cHandler->getI2CBus(1)),
         mGMP252{gmp252},
         mHMP60{hmp60},
         mFanController(mio12V),
         mSDP600{sdp600},
+        mMQTTHandler(mqttHandler),
         mMode_auto(true),
         mMQTT_input(false),
         mTargetFanSpeed(0), // get from EEPROM
@@ -144,14 +146,16 @@ void State::OLED_MQTTCredentials() {
 }
 
 void State::OLED_MQTTConnection() {
+    mDisplay.fill(0);
     mDisplay.text("MQTT Connecting...", 0, 0);
     mDisplay.show();
-    // if (mMQTTConnect) {
-    mDisplay.text("MQTT Connected successfully!", 0, 0);
+    if (mMQTTHandler->connect()) {
+        mDisplay.text("MQTT connected successfully!", 0, 18);
+    } else {
+        mDisplay.text("MQTT connection failed!", 0, 18);
+    }
     mDisplay.show();
-    // } else {
-    mDisplay.text("MQTT Connection failed!", 0, 0);
-    mDisplay.show();
+    sleep_ms(5000);
 }
 
 void State::updateOLED() {
@@ -202,7 +206,11 @@ void State::toggleMode() {
                 break;
             case brokerIP:
                 mMQTT_input = false;
-                // connect and shit
+                mMQTTHandler->setNetworkID(mNetworkID);
+                mMQTTHandler->setNetworkPW(mNetworkPW);
+                mMQTTHandler->setBrokerIP(mBrokerIP);
+                // EEPROM
+                OLED_MQTTConnection();
                 break;
         }
     } else {
