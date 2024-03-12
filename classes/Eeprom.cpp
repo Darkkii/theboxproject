@@ -7,10 +7,10 @@ Eeprom::Eeprom(std::shared_ptr<I2CHandler> i2cHandler) :
     mI2CHandler{ i2cHandler }
 {}
 
-void Eeprom::write(const uint16_t readWriteAddress, const std::string &writeBuffer, size_t bytesToWrite)
+void Eeprom::write(const uint16_t readWriteAddress, const std::string &writeBuffer)
 {
     mSetReadWriteAddress(readWriteAddress);
-    size_t totalBytesToWrite = bytesToWrite + 2; // +2 address bytes
+    size_t totalBytesToWrite = writeBuffer.length() + 3; // + 2 address bytes
     uint8_t buffer[totalBytesToWrite];
 
     for (size_t i = 0; i < totalBytesToWrite; i++)
@@ -24,20 +24,21 @@ void Eeprom::write(const uint16_t readWriteAddress, const std::string &writeBuff
             buffer[i] = writeBuffer.c_str()[i - 2];
         }
     }
+    buffer[totalBytesToWrite] = '\0';
 
     mWaitUntilReady();
     i2c_write_blocking(mI2CHandler->getI2CBus(mI2CBusNumber), mI2CDeviceAddress, buffer, totalBytesToWrite, false);
 }
 
-std::string Eeprom::read(const uint16_t readWriteAddress, size_t bytesToRead)
+std::string Eeprom::read(const uint16_t readWriteAddress)
 {
     char buffer[64];
     mSetReadWriteAddress(readWriteAddress);
     mWaitUntilReady();
     i2c_write_blocking(mI2CHandler->getI2CBus(mI2CBusNumber), mI2CDeviceAddress, mCurrentReadWriteAddress, 2, true);
-    i2c_read_blocking(mI2CHandler->getI2CBus(mI2CBusNumber), mI2CDeviceAddress, (uint8_t *)buffer, bytesToRead, false);
+    i2c_read_blocking(mI2CHandler->getI2CBus(mI2CBusNumber), mI2CDeviceAddress, (uint8_t *)buffer, 62, false);
 
-    return buffer;
+    return std::string(buffer);
 }
 
 void Eeprom::mSetReadWriteAddress(const uint16_t readWriteAddress)
