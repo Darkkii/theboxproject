@@ -74,16 +74,10 @@ int main()
     if (!mqttHandler->connect("asd", "asd", "asd")) { // get EEPROM
         mqttHandler->connect(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
     }
-    auto mqttTimeout = make_timeout_time_ms(5000);
 
     while (true) {
-        if (time_reached(mqttTimeout))
-        {
-            mqttHandler->update();
-            mqttTimeout = make_timeout_time_ms(5000);
-        }
-
         mqttHandler->keepAlive();
+
         if (time_reached(modbus_poll)) {
             modbus_poll = delayed_by_ms(modbus_poll, 3000);
             gmp252->update();
@@ -117,7 +111,6 @@ int main()
         }
 
         state->adjustFan();
-
     }
 }
 
