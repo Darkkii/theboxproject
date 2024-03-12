@@ -2,6 +2,7 @@
 #define EEPROM_H
 
 #include <memory>
+#include <string>
 #include "I2CHandler.h"
 
 class Eeprom
@@ -16,10 +17,8 @@ private:
 
 public:
     Eeprom(std::shared_ptr<I2CHandler> i2cHandler);
-    void write(const uint8_t *writeBuffer, size_t bytesToWrite);
-    void write(const uint16_t readWriteAddress, const uint8_t *writeBuffer, size_t bytesToWrite);
-    void read(uint8_t *readBuffer, size_t bytesToRead);
-    void read(const uint16_t readWriteAddress, uint8_t *readBuffer, size_t bytesToRead);
+    void write(const uint16_t readWriteAddress, const std::string &writeBuffer, size_t bytesToWrite);
+    std::string read(const uint16_t readWriteAddress, size_t bytesToRead);
 };
 
 #endif /* EEPROM_H */
