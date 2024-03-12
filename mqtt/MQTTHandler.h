@@ -19,8 +19,8 @@ private:
     std::string mBrokerIP = "192.168.137.1";
     int mBrokerPort = 1883;
     std::string mClientID = "PicoW-G06";
-    std::shared_ptr<IPStack> mIPStack;
-    std::shared_ptr<MQTT::Client<IPStack, Countdown, 256>> mMQTTClient;
+    std::shared_ptr<IPStack> mIPStack = nullptr;
+    std::shared_ptr<MQTT::Client<IPStack, Countdown, 256>> mMQTTClient = nullptr;
     int mRC = 0;
     int mMessageCount = 0;
     bool mIPLinkup = false;
