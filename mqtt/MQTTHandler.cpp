@@ -130,16 +130,15 @@ void MQTTHandler::keepAlive()
 
 void MQTTHandler::update()
 {
-    if (!mMQTTClient->isConnected()) {
-        printf("Not connected...\n");
-        mRC = mMQTTClient->connect(mData);
-        if (mRC != 0) {
-            printf("rc from MQTT connect is %d\n", mRC);
-        }
-    }
-
     if (mMQTTEnabled)
     {
+        if (!mMQTTClient->isConnected()) {
+            printf("Not connected...\n");
+            mRC = mMQTTClient->connect(mData);
+            if (mRC != 0) {
+                printf("rc from MQTT connect is %d\n", mRC);
+            }
+        }
         // TODO: Send status message to MQTT
     }
 }
