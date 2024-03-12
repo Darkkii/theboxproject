@@ -37,7 +37,7 @@ public:
     MQTTHandler(messageHandlerFptr messageHandler);
     enum topicNumber : int;
     bool connect();
-    void reconnect(std::string networkID, std::string networkPW, std::string brokerIP);
+    bool connect(std::string networkID, std::string networkPW, std::string brokerIP);
     void send(StatusMessage statusMessage);
     void keepAlive();
     void update() override;

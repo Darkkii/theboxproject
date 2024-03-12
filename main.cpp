@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <string.h>
-#include <cmath>
 #include <iostream>
 #include "pico/stdlib.h"
 #include "pico/time.h"
@@ -8,12 +5,8 @@
 #include "uart/PicoUart.h"
 #include <memory>
 
-#include "IPStack.h"
-#include "Countdown.h"
 #include "MQTTClient.h"
 #include "ModbusClient.h"
-#include "ModbusRegister.h"
-#include "ssd1306.h"
 #include "GMP252.h"
 #include "HMP60.h"
 #include "SDP600.h"
@@ -39,7 +32,10 @@
 
 #define BAUD_RATE 9600
 
-#define USE_MQTT
+#define DEFAULT_NETWORK_ID "SmartIotMQTT"
+#define DEFAULT_NETWORK_PW "SmartIot"
+#define DEFAULT_BROKER_IP  "192.168.1.10"
+
 #define STOP_BITS 1 // for simulator
 //#define STOP_BITS 2 // for real system
 
@@ -49,7 +45,9 @@ static shared_ptr<MQTTHandler> mqttHandler;
 
 int main()
 {
+    // Initialize chosen serial port
     stdio_init_all();
+
     printf("\nBoot\n");
     mqttHandler = make_shared<MQTTHandler>(messageHandler);
 
@@ -71,13 +69,13 @@ int main()
     PicoSW picoSW(true, true, true, true, true);
     PicoSW_event swEvent;
 
-#ifdef USE_MQTT
-    mqttHandler->connect();
+    // mqttHandler->connect("PICOQ5-9k195", "Q5-9k195", "192.168.137.1");
+    if (!mqttHandler->connect("asd", "asd", "asd")) { // get EEPROM
+        mqttHandler->connect(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
+    }
     auto mqttTimeout = make_timeout_time_ms(5000);
-#endif
 
     while (true) {
-#ifdef USE_MQTT
         if (time_reached(mqttTimeout))
         {
             mqttHandler->update();
@@ -85,7 +83,6 @@ int main()
         }
 
         mqttHandler->keepAlive();
-#endif
         if (time_reached(modbus_poll)) {
             modbus_poll = delayed_by_ms(modbus_poll, 3000);
             gmp252->update();
