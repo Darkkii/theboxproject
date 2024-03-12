@@ -14,9 +14,9 @@
 class MQTTHandler : public Observer, public Subject
 {
 private:
-    std::string mNetworkID = "FORPONY";
-    std::string mNetworkPW = "tr4v3ll3r";
-    std::string mBrokerIP = "192.168.1.50";
+    std::string mNetworkID = "PICOQ5-9k195";
+    std::string mNetworkPW = "Q5-9k195";
+    std::string mBrokerIP = "192.168.137.1";
     int mBrokerPort = 1883;
     std::string mClientID = "PicoW-G06";
     std::shared_ptr<IPStack> mIPStack;

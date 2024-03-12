@@ -31,9 +31,6 @@ IPStack::IPStack(const char *ssid, const char *pw) : count{ 0 }, wr{ 0 }, rd{ 0 
     }
 }
 
-IPStack::~IPStack()
-{}
-
 void IPStack::retry(const char *ssid, const char *pw)
 {
     cyw43_arch_enable_sta_mode();
@@ -220,11 +217,11 @@ err_t IPStack::tcp_client_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, 
         state->count += bytes_to_copy; // increment count by the rest of the copied bytes
 
         tcp_recved(tpcb, p->tot_len);
-    }
+        }
     pbuf_free(p); // can we omit this call instead of dropping bytes to save the buffer for copying the rest later?
 
     return ERR_OK;
-}
+    }
 
 
 int IPStack::read(unsigned char *buffer, int len, int timeout)

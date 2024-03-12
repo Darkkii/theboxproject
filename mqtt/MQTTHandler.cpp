@@ -158,8 +158,7 @@ void MQTTHandler::update()
 
     if (mMQTTEnabled)
     {
-        // TODO: Change to fetch actual data from either JSON object or sensors.
-        // send(TOPIC_STATUS, mStatusMessage);
+        // TODO: Send status message to MQTT
     }
 }
 

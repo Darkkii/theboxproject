@@ -26,8 +26,6 @@ int main()
 
 #ifdef USE_MQTT
     mqttHandler->connect();
-    sleep_ms(5000);
-    mqttHandler->reconnect("FORPONY", "tr4v3ll3r", "192.168.1.50");
     auto mqttTimeout = make_timeout_time_ms(5000);
 #endif
 
