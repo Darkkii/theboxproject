@@ -1,5 +1,7 @@
 #include "MQTTHandler.h"
 
+#include <utility>
+
 using namespace std;
 
 MQTTHandler::MQTTHandler(messageHandlerFptr messageHandler) :
@@ -86,6 +88,8 @@ bool MQTTHandler::connect()
     }
 
     printf("Wifi network unavailable.\n");
+    mIPStack->disconnect();
+    mIPStack.reset();
     return false;
 }
 

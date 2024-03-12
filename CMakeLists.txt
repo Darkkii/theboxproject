@@ -105,6 +105,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         uart
         classes
         sensors
+        i2c
         nlohmann_json::nlohmann_json
 )
 

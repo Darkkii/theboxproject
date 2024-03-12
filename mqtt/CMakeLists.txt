@@ -23,7 +23,7 @@ target_link_libraries(${LIBRARY_NAME}
         PRIVATE
         pico_stdlib
         observer
-        nlohmann_json::nlohmann_json
         PUBLIC
+        nlohmann_json::nlohmann_json
         pico_cyw43_arch_lwip_poll
 )

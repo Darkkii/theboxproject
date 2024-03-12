@@ -4,7 +4,9 @@ set(LIBRARY_NAME sensors)
 # Library sources -- Add each .cpp or .c file from the folder here
 add_library(${LIBRARY_NAME}
             GMP252.cpp
-            HMP60.cpp)
+            HMP60.cpp
+            SDP600.cpp
+            SDP600.h)
 
 # Include directories -- No need to edit
 target_include_directories(${LIBRARY_NAME}
@@ -17,6 +19,7 @@ target_link_libraries(${LIBRARY_NAME}
         PRIVATE
         pico_stdlib
         modbus
+        hardware_i2c
         PUBLIC
         observer
 )

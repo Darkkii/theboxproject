@@ -7,8 +7,8 @@ class I2CBus
 {
 private:
     i2c_inst_t *mI2C;
-    uint8_t mSDA;
-    uint8_t mSCL;
+    uint mSDA;
+    uint mSCL;
     uint mBaudRate;
 
     enum mI2CPin

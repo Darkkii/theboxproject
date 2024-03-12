@@ -38,7 +38,3 @@ void HMP60::update()
     mTemperature.u = mTemperatureRegisterLow.read() | (mTemperatureRegisterHigh.read() << 16);
     sleep_ms(5);
 }
-
-void HMP60::addObserver(shared_ptr<Observer> observer) { mObservers.push_back(observer); }
-
-void HMP60::notifyObservers() { for (auto &&observer : mObservers) { observer->update(); } }

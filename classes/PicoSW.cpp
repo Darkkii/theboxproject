@@ -5,6 +5,9 @@ using namespace std;
 
 void PicoSW::interruptHandler(uint gpio, uint32_t event_mask)
 {
+    if (gpio == SW_ROT_A_PIN) {
+        gpio = gpio_get(SW_ROT_B_PIN) ? SW_ROT_A_PIN : SW_ROT_B_PIN;
+    }
     mEvents.emplace(gpio, event_mask, time_us_32());
 }
 
@@ -60,7 +63,7 @@ PicoSW::PicoSW(bool rot_rot, bool rot_sw, bool sw_0, bool sw_1, bool sw_2)
 // Initialize static member
 queue<event_tuple> PicoSW::mEvents;
 
-RotSW_event PicoSW::getEvent()
+PicoSW_event PicoSW::getEvent()
 {
     if (mEvents.empty()) {
         return NO_EVENT;
@@ -77,9 +80,19 @@ RotSW_event PicoSW::getEvent()
             if (time_stamp - mPrev_SW_Rise >= PRESS_DEBOUNCE_DELAY_US) {
                 switch (event_mask) {
                     case GPIO_IRQ_EDGE_RISE:
-                        return gpio_get(SW_ROT_B_PIN) ? CLOCKWISE : COUNTER_CLOCKWISE;
+                        return CLOCKWISE;
                     case GPIO_IRQ_EDGE_FALL:
-                        return gpio_get(SW_ROT_B_PIN) ? COUNTER_CLOCKWISE : CLOCKWISE;
+                        return COUNTER_CLOCKWISE;
+                }
+            }
+            break;
+        case SW_ROT_B_PIN:
+            if (time_stamp - mPrev_SW_Rise >= PRESS_DEBOUNCE_DELAY_US) {
+                switch (event_mask) {
+                    case GPIO_IRQ_EDGE_RISE:
+                        return COUNTER_CLOCKWISE;
+                    case GPIO_IRQ_EDGE_FALL:
+                        return CLOCKWISE;
                 }
             }
             break;
@@ -93,7 +106,7 @@ RotSW_event PicoSW::getEvent()
                     break;
                 case GPIO_IRQ_EDGE_FALL:
                     if (time_stamp - mPrev_SW_Rise >= PRESS_DEBOUNCE_DELAY_US) {
-                        return static_cast<RotSW_event>(gpio);
+                        return static_cast<PicoSW_event>(gpio);
                     }
             }
             break;
