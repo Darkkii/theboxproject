@@ -14,14 +14,12 @@
 class MQTTHandler : public Observer, public Subject
 {
 private:
-    std::string mNetworkID = "PICOQ5-9k195";
-    std::string mNetworkPW = "Q5-9k195";
-    std::string mBrokerIP = "192.168.137.1";
+    std::string mNetworkID = "FORPONY";
+    std::string mNetworkPW = "tr4v3ll3r";
+    std::string mBrokerIP = "192.168.1.50";
     int mBrokerPort = 1883;
     std::string mClientID = "PicoW-G06";
     std::shared_ptr<IPStack> mIPStack;
-    // IPStack *mIPStack;
-    // IPStack mIPStack; // TODO: move to init list
     std::shared_ptr<MQTT::Client<IPStack, Countdown, 256>> mMQTTClient;
     int mRC = 0;
     int mMessageCount = 0;
@@ -39,6 +37,7 @@ public:
     MQTTHandler(messageHandlerFptr messageHandler);
     enum topicNumber : int;
     void connect();
+    void reconnect(std::string networkID, std::string networkPW, std::string brokerIP);
     void send(StatusMessage statusMessage);
     void keepAlive();
     void update() override;
