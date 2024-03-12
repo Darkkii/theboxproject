@@ -17,8 +17,8 @@ private:
 
 public:
     Eeprom(std::shared_ptr<I2CHandler> i2cHandler);
-    void write(const uint16_t readWriteAddress, const std::string &writeBuffer, size_t bytesToWrite);
-    std::string read(const uint16_t readWriteAddress, size_t bytesToRead);
+    void write(const uint16_t readWriteAddress, const std::string &writeBuffer);
+    std::string read(const uint16_t readWriteAddress);
 };
 
 #endif /* EEPROM_H */
