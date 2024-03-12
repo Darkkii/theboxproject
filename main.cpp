@@ -40,6 +40,8 @@
 #define BAUD_RATE 9600
 
 #define USE_MQTT
+#define STOP_BITS 1 // for simulator
+//#define STOP_BITS 2 // for real system
 
 void messageHandler(MQTT::MessageData &md);
 // static global pointer to allow mqtt callback function to access public member functions
