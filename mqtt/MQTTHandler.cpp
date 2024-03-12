@@ -52,6 +52,8 @@ bool MQTTHandler::connect()
     int retry = 0;
     mIPStack = make_shared<IPStack>(mNetworkID.c_str(), mNetworkPW.c_str());
 
+    mIPStack = make_shared<IPStack>(mNetworkID.c_str(), mNetworkPW.c_str());
+
     while (!mIPStack->isLinkUp() && ++retry < 3)
     {
         printf("Wifi connection error. Retrying...\n");
@@ -60,6 +62,7 @@ bool MQTTHandler::connect()
 
     if (mIPStack->isLinkUp())
     {
+        mIPLinkup = true;
         mMQTTClient = make_shared<MQTT::Client<IPStack, Countdown, 256>>(*mIPStack);
         mMQTTEnabled = mMQTTConnect();
 
@@ -80,7 +83,7 @@ bool MQTTHandler::connect(std::string networkID, std::string networkPW, std::str
     mNetworkPW = networkPW;
     mBrokerIP = brokerIP;
 
-    if (mIPStack->isLinkUp())
+    if (mIPLinkup)
     {
         mMQTTClient->disconnect();
         mMQTTClient.reset();
