@@ -32,11 +32,17 @@
 
 #define BAUD_RATE 9600
 
+#if 0
 #define DEFAULT_NETWORK_ID "SmartIotMQTT"
 #define DEFAULT_NETWORK_PW "SmartIot"
 #define DEFAULT_BROKER_IP  "192.168.1.10"
+#else
+#define DEFAULT_NETWORK_ID "PICOQ5-9k195"
+#define DEFAULT_NETWORK_PW "Q5-9k195"
+#define DEFAULT_BROKER_IP  "192.168.137.1"
+#endif
 
-#define MQTT_RECONNECTABLE false
+#define MQTT_RECONNECTABLE true
 
 #define STOP_BITS 1 // for simulator
 //#define STOP_BITS 2 // for real system
@@ -73,7 +79,6 @@ int main()
     PicoSW_event swEvent;
 
 #if MQTT_RECONNECTABLE
-    //mqttHandler->connect("PICOQ5-9k195", "Q5-9k195", "192.168.137.1");
     if (!state->ConnectMQTT("asd", "aasdasdsd", "1.1.1.1")) { // get EEPROM
         state->ConnectMQTT(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
     }

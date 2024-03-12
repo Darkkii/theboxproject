@@ -1,7 +1,5 @@
 #include "State.h"
 
-#include <utility>
-
 using namespace std;
 
 State::State(const shared_ptr<I2CHandler> &i2cHandler,
@@ -144,7 +142,9 @@ bool State::ConnectMQTT(string networkID, string networkPW, string BrokerIP) {
     mDisplay.show();
     bool success = mMQTTHandler->connect(std::move(networkID), std::move(networkPW), std::move(BrokerIP));
     if (success) {
-        // EEPROM
+        // (mNetworkID)
+        // (mNetworkPW)
+        // (mBrokerIP)
         mDisplay.text("Success!", 0, 30);
     } else {
         mDisplay.text("Failed!", 0, 30);
@@ -178,11 +178,6 @@ void State::fetchValues() {
     mRH = mHMP60->getRelativeHumidity();
     mCurrentPressure = static_cast<int16_t>(mSDP600->getPressure() / 240);
     mCurrentFanSpeed = mFanController->getFanSpeed();
-    SettingsMessage sm = mMQTTHandler->getSettingsMessage();
-    mMode_auto = sm.getAuto();
-    mMode_auto ?
-            mTargetPressure = static_cast<int16_t>(sm.getSetpoint()) :
-            mTargetFanSpeed = static_cast<uint16_t>(sm.getSetpoint());
 }
 
 void State::update() {
@@ -190,6 +185,17 @@ void State::update() {
     writeStatusLines();
     updateOLED();
     //updateCout();
+}
+
+void State::update(SettingsMessage sm) {
+    mMode_auto = sm.getAuto();
+    mMode_auto ?
+            mTargetPressure = static_cast<int16_t>(sm.getSetpoint()) :
+            mTargetFanSpeed = static_cast<uint16_t>(sm.getSetpoint()) * 10;
+    mInputPressure = mTargetPressure;
+    mInputFanSpeed = mTargetFanSpeed;
+    update();
+    updateMQTT();
 }
 
 void State::toggle_MQTT_input() {
@@ -223,6 +229,8 @@ void State::toggleMode() {
         mInputPressure = mTargetPressure;
         mInputFanSpeed = mCurrentFanSpeed;
         mTargetFanSpeed = mCurrentFanSpeed;
+        // (mMode_auto)
+        // (mTargetFanSpeed)
     }
     update();
 }
@@ -243,8 +251,10 @@ void State::setTarget() {
     } else {
         if (mMode_auto) {
             mTargetPressure = mInputPressure;
+            // (mTargetPressure)
         } else {
             mTargetFanSpeed = mInputFanSpeed;
+            // (mTargetFanSpeed)
         }
     }
     update();
@@ -376,7 +386,7 @@ void State::adjustInputPressure(int x) {
     int temp = mInputPressure + x;
     if (0 < temp) {
         if (temp < 125) {
-            mInputPressure = temp;
+            mInputPressure = static_cast<int16_t>(temp);
         } else {
             mInputPressure = 125;
         }
@@ -392,8 +402,8 @@ void State::adjustFan() {
             mPrevFanAdjustment_us = curr_time_us;
             if (mTargetPressure > MIN_PRESSURE_TARGET) {
                 mSDP600->update();
-                int16_t currentPressure = mSDP600->getPressure() / 240;
-                int16_t targetDelta = mTargetPressure - currentPressure;
+                auto currentPressure = static_cast<int16_t>(mSDP600->getPressure() / 240);
+                auto targetDelta = static_cast<int16_t>(mTargetPressure - currentPressure);
                 if (abs(targetDelta) > PRESSURE_TARGET_ACCURACY) {
                     int newFanSpeed = mCurrentFanSpeed + 10 * targetDelta / 2;
                     mFanController->setFanSpeed(newFanSpeed);
@@ -418,5 +428,4 @@ void State::updateMQTT() {
             static_cast<int>(mCO2),
             static_cast<int>(mRH),
             static_cast<int>(mTemperature)));
-    mMQTTHandler->update();
 }

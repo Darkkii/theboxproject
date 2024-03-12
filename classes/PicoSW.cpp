@@ -83,6 +83,8 @@ PicoSW_event PicoSW::getEvent()
                         return CLOCKWISE;
                     case GPIO_IRQ_EDGE_FALL:
                         return COUNTER_CLOCKWISE;
+                    default:
+                        ;
                 }
             }
             break;
@@ -93,6 +95,8 @@ PicoSW_event PicoSW::getEvent()
                         return COUNTER_CLOCKWISE;
                     case GPIO_IRQ_EDGE_FALL:
                         return CLOCKWISE;
+                    default:
+                        ;
                 }
             }
             break;
@@ -108,8 +112,12 @@ PicoSW_event PicoSW::getEvent()
                     if (time_stamp - mPrev_SW_Rise >= PRESS_DEBOUNCE_DELAY_US) {
                         return static_cast<PicoSW_event>(gpio);
                     }
+                default:
+                    ;
             }
             break;
+        default:
+            ;
     }
     return NO_EVENT;
 }
