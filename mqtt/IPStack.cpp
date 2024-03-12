@@ -93,6 +93,7 @@ int IPStack::connect(const char *hostname, int port)
  *            Only return ERR_ABRT if you have called tcp_abort from within the
  *            callback function!
  */
+
 bool IPStack::isLinkUp()
 {
     return linkup;
@@ -290,7 +291,7 @@ int IPStack::disconnect()
     cyw43_arch_lwip_begin();
 
     err_t err = ERR_OK;
-    if (tcp_pcb != nullptr) {
+    if (tcp_pcb != NULL) {
         tcp_arg(tcp_pcb, NULL);
         tcp_poll(tcp_pcb, NULL, 0);
         tcp_sent(tcp_pcb, NULL);
@@ -302,10 +303,13 @@ int IPStack::disconnect()
             tcp_abort(tcp_pcb); // this deallocates tcp_pcb
             err = ERR_ABRT;
         }
+        tcp_pcb = NULL;
     }
     cyw43_arch_lwip_end();
     cyw43_arch_deinit();
     return err;
 }
+
+
 
 

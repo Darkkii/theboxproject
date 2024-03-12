@@ -50,7 +50,6 @@ bool MQTTHandler::mMQTTSubscribe(const string topic)
 bool MQTTHandler::connect()
 {
     int retry = 0;
-    mIPStack = make_shared<IPStack>(mNetworkID.c_str(), mNetworkPW.c_str());
 
     if (mIPStack != nullptr)
     {
@@ -89,6 +88,8 @@ bool MQTTHandler::connect()
     }
 
     printf("Wifi network unavailable.\n");
+    mIPStack->disconnect();
+    mIPStack.reset();
     return false;
 }
 
