@@ -23,6 +23,7 @@ private:
     std::shared_ptr<MQTT::Client<IPStack, Countdown, 256>> mMQTTClient;
     int mRC = 0;
     int mMessageCount = 0;
+    bool mIPLinkup = false;
     bool mMQTTEnabled = false;
     const std::string mStatusTopic = "controller/status";
     const std::string mSettingsTopic = "controller/settings";
