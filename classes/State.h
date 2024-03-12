@@ -14,7 +14,7 @@
 #include "SDP600.h"
 #include "MQTTHandler.h"
 
-#define PRESSURE_ADJUSTMENT_LATENCY_US 2000000
+#define PRESSURE_ADJUSTMENT_LATENCY_US 4000000
 #define PRESSURE_TARGET_ACCURACY 4
 #define MIN_PRESSURE_TARGET 10
 #define OLED_MAX_STR_WIDTH 16
@@ -43,7 +43,6 @@ private:
     int16_t mTargetPressure;
     int16_t mInputPressure;
 
-    absolute_time_t mFanAdjustmentTimer;
     uint32_t mPrevFanAdjustment_us;
 
     std::stringstream mCO2_line;
@@ -71,7 +70,6 @@ private:
     void updateOLED();
     void OLED_VentStatus();
     void OLED_MQTTCredentials();
-    void OLED_MQTTConnection();
     void updateCout();
 public:
     State(const std::shared_ptr<I2CHandler>& i2cHandler,
@@ -91,6 +89,8 @@ public:
     void adjustInputFanSpeed(int x);
     void adjustInputPressure(int x);
     void adjustFan();
+    bool ConnectMQTT(std::string networkID, std::string networkPW, std::string BrokerIP);
+    void updateMQTT();
 };
 
 

@@ -1,5 +1,7 @@
 #include "State.h"
 
+#include <utility>
+
 using namespace std;
 
 State::State(const shared_ptr<I2CHandler> &i2cHandler,
@@ -91,16 +93,16 @@ void State::OLED_MQTTCredentials() {
                 cutString = mBrokerIP;
                 cutString.erase(0, x - (OLED_MAX_STR_WIDTH - 1));
             }
-            mDisplay.text("Broker ID:",0,44);
+            mDisplay.text("Broker ID:", 0, 44);
             mDisplay.text(tooLong ? cutString : mBrokerIP, 0, 53);
         case networkPW:
             x = mNetworkPW.length();
             tooLong = x >= OLED_MAX_STR_WIDTH;
             if (tooLong) {
                 cutString = mNetworkPW;
-                cutString.erase(0,x - (OLED_MAX_STR_WIDTH - 1));
+                cutString.erase(0, x - (OLED_MAX_STR_WIDTH - 1));
             }
-            mDisplay.text("Network PW:",0,22);
+            mDisplay.text("Network PW:", 0, 22);
             mDisplay.text(tooLong ? cutString : mNetworkPW, 0, 31);
         case networkID:
             x = mNetworkID.length();
@@ -109,7 +111,7 @@ void State::OLED_MQTTCredentials() {
                 cutString = mNetworkID;
                 cutString.erase(0, x - (OLED_MAX_STR_WIDTH - 1));
             }
-            mDisplay.text("Network ID:",0,0);
+            mDisplay.text("Network ID:", 0, 0);
             mDisplay.text(tooLong ? cutString : mNetworkID, 0, 9);
     }
 
@@ -124,24 +126,26 @@ void State::OLED_MQTTCredentials() {
             x = mNetworkPW.length();
             tooLong = x > OLED_MAX_STR_WIDTH - 2;
             mDisplay.rect(tooLong ? 7 * (OLED_MAX_STR_WIDTH + 1) + 1 : x * 8, 30, 8, 10, 1, true);
-            mDisplay.text(&mInputChar, tooLong ? 7 * (OLED_MAX_STR_WIDTH + 1) + 1  : x * 8, 31, 0);
+            mDisplay.text(&mInputChar, tooLong ? 7 * (OLED_MAX_STR_WIDTH + 1) + 1 : x * 8, 31, 0);
             break;
         case brokerIP:
             x = mBrokerIP.length();
             tooLong = x > OLED_MAX_STR_WIDTH - 2;
             mDisplay.rect(tooLong ? 7 * (OLED_MAX_STR_WIDTH + 1) + 1 : x * 8, 52, 8, 10, 1, true);
-            mDisplay.text(&mInputChar, tooLong ? 7 * (OLED_MAX_STR_WIDTH + 1) + 1  : x * 8, 53, 0);
+            mDisplay.text(&mInputChar, tooLong ? 7 * (OLED_MAX_STR_WIDTH + 1) + 1 : x * 8, 53, 0);
             break;
     }
 
     mDisplay.show();
 }
 
-void State::OLED_MQTTConnection() {
+bool State::ConnectMQTT(string networkID, string networkPW, string BrokerIP) {
     mDisplay.fill(0);
-    mDisplay.text("MQTT Connecting...", 0, 0);
+    mDisplay.text("MQTT Connecting to", 0, 0);
+    mDisplay.text(networkID, 0, 9);
     mDisplay.show();
-    if (mMQTTHandler->connect(mNetworkID, mNetworkPW, mBrokerIP)) {
+    bool success = mMQTTHandler->connect(std::move(networkID), std::move(networkPW), std::move(BrokerIP));
+    if (success) {
         // EEPROM
         mDisplay.text("MQTT connected successfully!", 0, 18);
     } else {
@@ -149,6 +153,7 @@ void State::OLED_MQTTConnection() {
     }
     mDisplay.show();
     sleep_ms(5000);
+    return success;
 }
 
 void State::updateOLED() {
@@ -207,7 +212,7 @@ void State::toggleMode() {
                 break;
             case brokerIP:
                 mMQTT_input = false;
-                OLED_MQTTConnection();
+                ConnectMQTT(mNetworkID, mNetworkPW, mBrokerIP);
                 break;
         }
     } else {
@@ -232,7 +237,7 @@ void State::setTarget() {
                 mBrokerIP += mInputChar;
                 break;
         }
-    } else { // fan control
+    } else {
         if (mMode_auto) {
             mTargetPressure = mInputPressure;
         } else {
@@ -254,14 +259,14 @@ void State::backspace() {
                 break;
             case networkPW:
                 if (mNetworkPW.length() > 0) {
-                    mNetworkID.pop_back();
+                    mNetworkPW.pop_back();
                 } else {
                     mMQTT_input_stage = networkID;
                 }
                 break;
             case brokerIP:
                 if (mNetworkID.length() > 0) {
-                    mNetworkID.pop_back();
+                    mBrokerIP.pop_back();
                 } else {
                     mMQTT_input_stage = networkPW;
                 }
@@ -289,6 +294,22 @@ void State::clockwise() {
                 update();
                 break;
             case 'z':
+                mInputChar = '!';
+                update();
+                break;
+            case '/':
+                mInputChar = ':';
+                update();
+                break;
+            case '@':
+                mInputChar = '[';
+                update();
+                break;
+            case '`':
+                mInputChar = '{';
+                update();
+                break;
+            case '~':
                 break;
             default:
                 ++mInputChar;
@@ -316,6 +337,22 @@ void State::counter_clockwise() {
                 break;
             case 'a':
                 mInputChar = 'Z';
+                update();
+                break;
+            case '!':
+                mInputChar = 'z';
+                update();
+                break;
+            case ':':
+                mInputChar = '/';
+                update();
+                break;
+            case '[':
+                mInputChar = '@';
+                update();
+                break;
+            case '{':
+                mInputChar = '`';
                 update();
                 break;
             default:
@@ -383,4 +420,17 @@ void State::adjustFan() {
             mFanController->setFanSpeed(mTargetFanSpeed);
         update();
     }
+}
+
+void State::updateMQTT() {
+    mMQTTHandler->send(StatusMessage(
+            mCurrentFanSpeed,
+            mMode_auto ? mTargetPressure : mTargetFanSpeed,
+            mCurrentPressure,
+            mMode_auto,
+            false,
+            mCO2,
+            mRH,
+            mTemperature));
+    mMQTTHandler->update();
 }

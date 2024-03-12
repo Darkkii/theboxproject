@@ -36,6 +36,8 @@
 #define DEFAULT_NETWORK_PW "SmartIot"
 #define DEFAULT_BROKER_IP  "192.168.1.10"
 
+#define MQTT_RECONNECTABLE false
+
 #define STOP_BITS 1 // for simulator
 //#define STOP_BITS 2 // for real system
 
@@ -69,26 +71,29 @@ int main()
     PicoSW picoSW(true, true, true, true, true);
     PicoSW_event swEvent;
 
-    // mqttHandler->connect("PICOQ5-9k195", "Q5-9k195", "192.168.137.1");
-    if (!mqttHandler->connect("asd", "aasdasdsd", "1.1.1.1")) { // get EEPROM
+#if MQTT_RECONNECTABLE
+    //mqttHandler->connect("PICOQ5-9k195", "Q5-9k195", "192.168.137.1");
+    if (!state->ConnectMQTT("asd", "aasdasdsd", "1.1.1.1")) { // get EEPROM
         mqttHandler->connect(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
     }
+#else
+    state->ConnectMQTT(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
+#endif //
     auto mqttTimeout = make_timeout_time_ms(5000);
 
     while (true) {
         if (time_reached(mqttTimeout))
         {
-            mqttHandler->update();
+            state->updateMQTT();
             mqttTimeout = make_timeout_time_ms(5000);
         }
-
         mqttHandler->keepAlive();
+
         if (time_reached(modbus_poll)) {
             modbus_poll = delayed_by_ms(modbus_poll, 3000);
             gmp252->update();
             hmp252->update();
             sdp600->update();
-
             state->update();
         }
 
@@ -110,13 +115,13 @@ int main()
                     state->backspace();
                     break;
                 case SW_2_PRESS:
+#if MQTT_RECONNECTABLE
                     state->toggle_MQTT_input();
+#endif
                     break;
             }
         }
-
         state->adjustFan();
-
     }
 }
 
