@@ -31,19 +31,19 @@ private:
     std::shared_ptr<MQTTHandler> mMQTTHandler;
 
     bool mMode_auto;
-    bool mMQTT_input;
-    float mCO2;
-    float mTemperature;
-    float mRH;
+    bool mMQTT_input{false};
+    float mCO2{0};
+    float mTemperature{0};
+    float mRH{0};
 
-    uint16_t mCurrentFanSpeed;
+    uint16_t mCurrentFanSpeed{0};
     uint16_t mTargetFanSpeed;
     uint16_t mInputFanSpeed;
-    int16_t mCurrentPressure;
+    int16_t mCurrentPressure{0};
     int16_t mTargetPressure;
     int16_t mInputPressure;
 
-    uint32_t mPrevFanAdjustment_us;
+    uint32_t mPrevFanAdjustment_us{0};
 
     std::stringstream mCO2_line;
     std::stringstream mTemp_line;
@@ -58,9 +58,9 @@ private:
         brokerIP
     };
 
-    enum MQTTinput_stage_enum mMQTT_input_stage;
+    enum MQTTinput_stage_enum mMQTT_input_stage{networkID};
 
-    char mInputChar;
+    char mInputChar{'0'};
     std::string mNetworkID;
     std::string mNetworkPW;
     std::string mBrokerIP;

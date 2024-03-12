@@ -16,12 +16,9 @@ State::State(const shared_ptr<I2CHandler> &i2cHandler,
         mFanController(mio12V),
         mSDP600{sdp600},
         mMQTTHandler(mqttHandler),
-        mMode_auto(true),
-        mMQTT_input(false),
-        mTargetFanSpeed(0), // get from EEPROM
-        mTargetPressure(0), // get from EEPROM
-        mPrevFanAdjustment_us(0),
-        mInputChar('0') {
+        mMode_auto(true), // get from EEPROM ?
+        mTargetFanSpeed(0), // get from EEPROM ?
+        mTargetPressure(0) { // get from EEPROM ?
     mFanController->setFanSpeed(mTargetFanSpeed);
     mInputFanSpeed = mTargetFanSpeed;
     mInputPressure = mTargetPressure;
