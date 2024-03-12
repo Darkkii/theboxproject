@@ -425,5 +425,9 @@ void State::adjustFan()
     }
 }
 
-void State::handleMessage(StatusMessage msg)
-{}
+void State::update(SettingsMessage sm)
+{
+    mMode_auto = sm.getAuto();
+    mMode_auto ? mTargetPressure = sm.getSetpoint() : mTargetFanSpeed = sm.getSetpoint();
+    update();
+}

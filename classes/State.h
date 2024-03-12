@@ -14,6 +14,7 @@
 #include "SDP600.h"
 #include "MQTTHandler.h"
 #include "StatusMessage.h"
+#include "SettingsMessage.h"
 
 #define PRESSURE_ADJUSTMENT_LATENCY_US 2000000
 #define PRESSURE_TARGET_ACCURACY 4
@@ -84,6 +85,7 @@ public:
           const std::shared_ptr<SDP600> &sdp600,
           const std::shared_ptr<MQTTHandler> &mqttHandler);
     void update() override;
+    void update(SettingsMessage sm) override;
 
     void toggleMode();
     void toggle_MQTT_input();
@@ -94,7 +96,6 @@ public:
     void adjustInputFanSpeed(int x);
     void adjustInputPressure(int x);
     void adjustFan();
-    void handleMessage(StatusMessage msg);
 };
 
 
