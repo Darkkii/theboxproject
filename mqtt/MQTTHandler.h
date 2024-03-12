@@ -12,7 +12,7 @@
 #include "StatusMessage.h"
 #include "SettingsMessage.h"
 
-class MQTTHandler : public Observer, public Subject
+class MQTTHandler : public Subject
 {
 private:
     std::string mNetworkID = "PICOQ5-9k195";
@@ -43,11 +43,9 @@ public:
     bool connect(std::string networkID, std::string networkPW, std::string brokerIP);
     void send(StatusMessage statusMessage);
     void keepAlive();
-    void update() override;
     void addObserver(std::shared_ptr<Observer> observer) override;
     void notifyObservers() override;
     void setSettingsMessage(SettingsMessage message);
-    SettingsMessage getSettingsMessage();
     enum topicNumber : int
     {
         TOPIC_STATUS,

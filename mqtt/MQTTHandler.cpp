@@ -133,31 +133,11 @@ void MQTTHandler::keepAlive()
     }
 }
 
-void MQTTHandler::update()
-{
-    if (mMQTTEnabled)
-    {
-        if (!mMQTTClient->isConnected()) {
-            printf("Not connected...\n");
-            mRC = mMQTTClient->connect(mData);
-            if (mRC != 0) {
-                printf("rc from MQTT connect is %d\n", mRC);
-            }
-        }
-        // TODO: Send status message to MQTT
-    }
-}
-
 void MQTTHandler::addObserver(shared_ptr<Observer> observer) { mObservers.push_back(observer); }
 
-void MQTTHandler::notifyObservers() { for (auto &&observer : mObservers) { observer->update(); } }
+void MQTTHandler::notifyObservers() { for (auto &&observer : mObservers) { observer->update(mSettings); } }
 
 void MQTTHandler::setSettingsMessage(const SettingsMessage message)
 {
     mSettings = message;
-}
-
-SettingsMessage MQTTHandler::getSettingsMessage()
-{
-    return mSettings;
 }
