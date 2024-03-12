@@ -66,10 +66,11 @@ private:
     std::string mBrokerIP;
 
     void fetchValues();
-    void writeLines();
+    void writeStatusLines();
     void updateOLED();
     void OLED_VentStatus();
     void OLED_MQTTCredentials();
+    void OLED_MQTTConnection();
     void updateCout();
 public:
     State(const std::shared_ptr<I2CHandler>& i2cHandler,

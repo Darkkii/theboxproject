@@ -31,7 +31,7 @@ void State::fetchValues() {
     mCurrentFanSpeed = mFanController->getFanSpeed();
 }
 
-void State::writeLines() {
+void State::writeStatusLines() {
     mCO2_line.str("");
     mCO2_line << " CO2: ";
     mCO2_line << setw(5) << setprecision(0) << mCO2;
@@ -135,11 +135,22 @@ void State::OLED_MQTTCredentials() {
         case brokerIP:
             x = mBrokerIP.length();
             tooLong = x > OLED_MAX_STR_WIDTH - 2;
-            mDisplay.rect(tooLong ? 7 * (OLED_MAX_STR_WIDTH + 1) + 1  : x * 8, 52, 8, 10, 1, true);
+            mDisplay.rect(tooLong ? 7 * (OLED_MAX_STR_WIDTH + 1) + 1 : x * 8, 52, 8, 10, 1, true);
             mDisplay.text(&mInputChar, tooLong ? 7 * (OLED_MAX_STR_WIDTH + 1) + 1  : x * 8, 53, 0);
             break;
     }
 
+    mDisplay.show();
+}
+
+void State::OLED_MQTTConnection() {
+    mDisplay.text("MQTT Connecting...", 0, 0);
+    mDisplay.show();
+    // if (mMQTTConnect) {
+    mDisplay.text("MQTT Connected successfully!", 0, 0);
+    mDisplay.show();
+    // } else {
+    mDisplay.text("MQTT Connection failed!", 0, 0);
     mDisplay.show();
 }
 
@@ -163,7 +174,7 @@ void State::updateCout() {
 
 void State::update() {
     fetchValues();
-    writeLines();
+    writeStatusLines();
     updateOLED();
     //updateCout();
 }
