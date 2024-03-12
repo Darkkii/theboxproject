@@ -25,14 +25,6 @@ State::State(const shared_ptr<I2CHandler> &i2cHandler,
     mInputPressure = mTargetPressure;
 }
 
-void State::fetchValues() {
-    mCO2 = mGMP252->getCO2();
-    mTemperature = (mGMP252->getTemperature() + mHMP60->getTemperature()) / 2;
-    mRH = mHMP60->getRelativeHumidity();
-    mCurrentPressure = mSDP600->getPressure() / 240;
-    mCurrentFanSpeed = mFanController->getFanSpeed();
-}
-
 void State::writeStatusLines() {
     mCO2_line.str("");
     mCO2_line << " CO2: ";
@@ -174,6 +166,14 @@ void State::updateCout() {
     cout << mPres_line.str() << endl;
     cout << mFan_line.str() << endl;
     printf("----------------\n");
+}
+
+void State::fetchValues() {
+    mCO2 = mGMP252->getCO2();
+    mTemperature = (mGMP252->getTemperature() + mHMP60->getTemperature()) / 2;
+    mRH = mHMP60->getRelativeHumidity();
+    mCurrentPressure = mSDP600->getPressure() / 240;
+    mCurrentFanSpeed = mFanController->getFanSpeed();
 }
 
 void State::update() {
