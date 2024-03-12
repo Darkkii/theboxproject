@@ -13,6 +13,7 @@
 #include "MIO12V.h"
 #include "SDP600.h"
 #include "MQTTHandler.h"
+#include "StatusMessage.h"
 
 #define PRESSURE_ADJUSTMENT_LATENCY_US 2000000
 #define PRESSURE_TARGET_ACCURACY 4
@@ -20,7 +21,8 @@
 #define OLED_MAX_STR_WIDTH 16
 
 
-class State: public Observer {
+class State : public Observer
+{
 private:
     ssd1306 mDisplay;
     std::shared_ptr<GMP252> mGMP252;
@@ -53,7 +55,8 @@ private:
     std::stringstream mPres_line;
     std::stringstream mFan_line;
 
-    enum MQTTinput_stage_enum {
+    enum MQTTinput_stage_enum
+    {
         networkID,
         networkPW,
         brokerIP
@@ -74,12 +77,12 @@ private:
     void OLED_MQTTConnection();
     void updateCout();
 public:
-    State(const std::shared_ptr<I2CHandler>& i2cHandler,
-          const std::shared_ptr<GMP252>& gmp252,
-          const std::shared_ptr<HMP60>& hmp60,
-          const std::shared_ptr<MIO12V>& mio12V,
-          const std::shared_ptr<SDP600>& sdp600,
-          const std::shared_ptr<MQTTHandler>& mqttHandler);
+    State(const std::shared_ptr<I2CHandler> &i2cHandler,
+          const std::shared_ptr<GMP252> &gmp252,
+          const std::shared_ptr<HMP60> &hmp60,
+          const std::shared_ptr<MIO12V> &mio12V,
+          const std::shared_ptr<SDP600> &sdp600,
+          const std::shared_ptr<MQTTHandler> &mqttHandler);
     void update() override;
 
     void toggleMode();
@@ -91,6 +94,7 @@ public:
     void adjustInputFanSpeed(int x);
     void adjustInputPressure(int x);
     void adjustFan();
+    void handleMessage(StatusMessage msg);
 };
 
 

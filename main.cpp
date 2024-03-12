@@ -51,20 +51,21 @@ int main()
     printf("\nBoot\n");
     mqttHandler = make_shared<MQTTHandler>(messageHandler);
 
-    auto i2cHandler {make_shared<I2CHandler>()};
+    auto i2cHandler{ make_shared<I2CHandler>() };
 
     auto modbus_poll = make_timeout_time_ms(3000);
     auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE, STOP_BITS) };
     auto rtu_client{ std::make_shared<ModbusClient>(uart) };
 
-    auto fanController {make_shared<MIO12V>(rtu_client)};
-    auto gmp252 {make_shared<GMP252>(rtu_client)};
-    auto hmp252 {make_shared<HMP60>(rtu_client)};
-    auto sdp600 {make_shared<SDP600>(i2cHandler->getI2CBus(1))};
+    auto fanController{ make_shared<MIO12V>(rtu_client) };
+    auto gmp252{ make_shared<GMP252>(rtu_client) };
+    auto hmp252{ make_shared<HMP60>(rtu_client) };
+    auto sdp600{ make_shared<SDP600>(i2cHandler->getI2CBus(1)) };
 
-    auto state {make_shared<State>(i2cHandler, gmp252, hmp252, fanController, sdp600, mqttHandler)};
+    auto state{ make_shared<State>(i2cHandler, gmp252, hmp252, fanController, sdp600, mqttHandler) };
 
     fanController->addObserver(state);
+    mqttHandler->addObserver(state);
 
     PicoSW picoSW(true, true, true, true, true);
     PicoSW_event swEvent;
@@ -135,9 +136,6 @@ void messageHandler(MQTT::MessageData &md)
     stream.ignore(256, ' ');
     stream >> setpoint;
 
-    SettingsMessage settingsMessage(mode, setpoint);
-
+    mqttHandler->setSettingsMessage(SettingsMessage(mode, setpoint));
     mqttHandler->notifyObservers();
-    StatusMessage msg(2, 1, 3, false, false, 2, 3, 30);
-    mqttHandler->send(msg);
 }
