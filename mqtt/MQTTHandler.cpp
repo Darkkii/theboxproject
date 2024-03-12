@@ -50,7 +50,6 @@ bool MQTTHandler::mMQTTSubscribe(const string topic)
 bool MQTTHandler::connect()
 {
     int retry = 0;
-    mIPStack = make_shared<IPStack>(mNetworkID.c_str(), mNetworkPW.c_str());
 
     if (mIPStack != nullptr)
     {
@@ -89,6 +88,8 @@ bool MQTTHandler::connect()
     }
 
     printf("Wifi network unavailable.\n");
+    mIPStack->disconnect();
+    mIPStack.reset();
     return false;
 }
 
@@ -133,16 +134,15 @@ void MQTTHandler::keepAlive()
 
 void MQTTHandler::update()
 {
-    if (!mMQTTClient->isConnected()) {
-        printf("Not connected...\n");
-        mRC = mMQTTClient->connect(mData);
-        if (mRC != 0) {
-            printf("rc from MQTT connect is %d\n", mRC);
-        }
-    }
-
     if (mMQTTEnabled)
     {
+        if (!mMQTTClient->isConnected()) {
+            printf("Not connected...\n");
+            mRC = mMQTTClient->connect(mData);
+            if (mRC != 0) {
+                printf("rc from MQTT connect is %d\n", mRC);
+            }
+        }
         // TODO: Send status message to MQTT
     }
 }
