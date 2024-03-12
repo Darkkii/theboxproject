@@ -141,7 +141,8 @@ void State::OLED_MQTTConnection() {
     mDisplay.fill(0);
     mDisplay.text("MQTT Connecting...", 0, 0);
     mDisplay.show();
-    if (mMQTTHandler->connect()) {
+    if (mMQTTHandler->connect(mNetworkID, mNetworkPW, mBrokerIP)) {
+        // EEPROM
         mDisplay.text("MQTT connected successfully!", 0, 18);
     } else {
         mDisplay.text("MQTT connection failed!", 0, 18);
@@ -206,10 +207,6 @@ void State::toggleMode() {
                 break;
             case brokerIP:
                 mMQTT_input = false;
-                mMQTTHandler->setNetworkID(mNetworkID);
-                mMQTTHandler->setNetworkPW(mNetworkPW);
-                mMQTTHandler->setBrokerIP(mBrokerIP);
-                // EEPROM
                 OLED_MQTTConnection();
                 break;
         }
