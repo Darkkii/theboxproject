@@ -3,7 +3,6 @@ set(LIBRARY_NAME classes)
 
 # Library sources -- Add each .cpp or .c file from the folder here
 add_library(${LIBRARY_NAME}
-        ExampleClass.cpp
         MIO12V.cpp
         PicoSW.cpp
         Eeprom.cpp
