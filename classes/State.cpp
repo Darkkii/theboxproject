@@ -406,17 +406,14 @@ void State::adjustFan() {
                 if (abs(targetDelta) > PRESSURE_TARGET_ACCURACY) {
                     int newFanSpeed = mCurrentFanSpeed + 10 * targetDelta / 2;
                     mFanController->setFanSpeed(newFanSpeed);
-                    update();
                 }
             } else if (mFanController->getFanSpeed() != 0) {
                 mFanController->setFanSpeed(0);
-                update();
             }
         }
     } else {
         if (mTargetFanSpeed != mFanController->getFanSpeed())
             mFanController->setFanSpeed(mTargetFanSpeed);
-        update();
     }
 }
 

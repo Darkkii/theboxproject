@@ -36,7 +36,7 @@
 #define DEFAULT_NETWORK_PW "SmartIot"
 #define DEFAULT_BROKER_IP  "192.168.1.10"
 
-#define MQTT_RECONNECTABLE true
+#define MQTT_RECONNECTABLE false
 
 #define STOP_BITS 1 // for simulator
 //#define STOP_BITS 2 // for real system
@@ -77,7 +77,8 @@ int main()
         state->ConnectMQTT(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
     }
 #else
-    state->ConnectMQTT(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
+    state->ConnectMQTT("PICOQ5-9k195", "Q5-9k195", "192.168.137.1");
+    //state->ConnectMQTT(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
 #endif //
     auto mqttTimeout = make_timeout_time_ms(5000);
 
