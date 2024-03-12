@@ -52,6 +52,21 @@ bool MQTTHandler::connect()
     int retry = 0;
     mIPStack = make_shared<IPStack>(mNetworkID.c_str(), mNetworkPW.c_str());
 
+    if (mIPStack != nullptr)
+    {
+        mIPStack->disconnect();
+        mIPStack.reset();
+    }
+
+    if (mMQTTEnabled)
+    {
+        mMQTTClient->disconnect();
+        mMQTTClient.reset();
+    }
+
+    mMQTTEnabled = false;
+
+
     mIPStack = make_shared<IPStack>(mNetworkID.c_str(), mNetworkPW.c_str());
 
     while (!mIPStack->isLinkUp() && ++retry < 3)
@@ -82,16 +97,6 @@ bool MQTTHandler::connect(std::string networkID, std::string networkPW, std::str
     mNetworkID = networkID;
     mNetworkPW = networkPW;
     mBrokerIP = brokerIP;
-
-    if (mIPLinkup)
-    {
-        mMQTTClient->disconnect();
-        mMQTTClient.reset();
-        mIPStack->disconnect();
-        mIPStack.reset();
-    }
-
-    mMQTTEnabled = false;
 
     return connect();
 }
