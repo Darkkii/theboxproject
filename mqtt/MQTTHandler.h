@@ -10,6 +10,7 @@
 #include "Observer.h"
 #include "Subject.h"
 #include "StatusMessage.h"
+#include "SettingsMessage.h"
 
 class MQTTHandler : public Observer, public Subject
 {
@@ -33,6 +34,7 @@ private:
     bool mMQTTSubscribe(const std::string topic);
     typedef void (*messageHandlerFptr)(MQTT::MessageData &md);
     messageHandlerFptr mMessageHandler;
+    SettingsMessage mSettings;
 
 public:
     MQTTHandler(messageHandlerFptr messageHandler);
@@ -44,9 +46,8 @@ public:
     void update() override;
     void addObserver(std::shared_ptr<Observer> observer) override;
     void notifyObservers() override;
-    void setNetworkID(std::string networkID);
-    void setNetworkPW(std::string networkPW);
-    void setBrokerIP(std::string brokerIP);
+    void setSettingsMessage(SettingsMessage message);
+    SettingsMessage getSettingsMessage();
     enum topicNumber : int
     {
         TOPIC_STATUS,

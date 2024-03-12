@@ -176,8 +176,13 @@ void State::fetchValues() {
     mCO2 = mGMP252->getCO2();
     mTemperature = (mGMP252->getTemperature() + mHMP60->getTemperature()) / 2;
     mRH = mHMP60->getRelativeHumidity();
-    mCurrentPressure = mSDP600->getPressure() / 240;
+    mCurrentPressure = static_cast<int16_t>(mSDP600->getPressure() / 240);
     mCurrentFanSpeed = mFanController->getFanSpeed();
+    SettingsMessage sm = mMQTTHandler->getSettingsMessage();
+    mMode_auto = sm.getAuto();
+    mMode_auto ?
+            mTargetPressure = static_cast<int16_t>(sm.getSetpoint()) :
+            mTargetFanSpeed = static_cast<uint16_t>(sm.getSetpoint());
 }
 
 void State::update() {
@@ -285,33 +290,26 @@ void State::clockwise() {
         switch (mInputChar) {
             case '9':
                 mInputChar = 'A';
-                update();
                 break;
             case 'Z':
                 mInputChar = 'a';
-                update();
                 break;
             case 'z':
                 mInputChar = '!';
-                update();
                 break;
             case '/':
                 mInputChar = ':';
-                update();
                 break;
             case '@':
                 mInputChar = '[';
-                update();
                 break;
             case '`':
                 mInputChar = '{';
-                update();
                 break;
             case '~':
                 break;
             default:
                 ++mInputChar;
-                update();
                 break;
         }
     } else {
@@ -320,8 +318,8 @@ void State::clockwise() {
         } else {
             adjustInputFanSpeed(+10);
         }
-        update();
     }
+    update();
 }
 
 void State::counter_clockwise() {
@@ -331,31 +329,24 @@ void State::counter_clockwise() {
                 break;
             case 'A':
                 mInputChar = '9';
-                update();
                 break;
             case 'a':
                 mInputChar = 'Z';
-                update();
                 break;
             case '!':
                 mInputChar = 'z';
-                update();
                 break;
             case ':':
                 mInputChar = '/';
-                update();
                 break;
             case '[':
                 mInputChar = '@';
-                update();
                 break;
             case '{':
                 mInputChar = '`';
-                update();
                 break;
             default:
                 --mInputChar;
-                update();
                 break;
         }
     } else {
@@ -364,8 +355,8 @@ void State::counter_clockwise() {
         } else {
             adjustInputFanSpeed(-10);
         }
-        update();
     }
+    update();
 }
 
 void State::adjustInputFanSpeed(int x) {
@@ -419,7 +410,7 @@ void State::adjustFan() {
 
 void State::updateMQTT() {
     mMQTTHandler->send(StatusMessage(
-            mCurrentFanSpeed,
+            mCurrentFanSpeed / 10,
             mMode_auto ? mTargetPressure : mTargetFanSpeed / 10,
             mCurrentPressure,
             mMode_auto,

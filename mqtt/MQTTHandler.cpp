@@ -5,7 +5,8 @@
 using namespace std;
 
 MQTTHandler::MQTTHandler(messageHandlerFptr messageHandler) :
-    mMessageHandler{ messageHandler }
+    mMessageHandler{ messageHandler },
+    mSettings{ SettingsMessage(false, 0) }
 {}
 
 bool MQTTHandler::mMQTTConnect()
@@ -151,8 +152,12 @@ void MQTTHandler::addObserver(shared_ptr<Observer> observer) { mObservers.push_b
 
 void MQTTHandler::notifyObservers() { for (auto &&observer : mObservers) { observer->update(); } }
 
-void MQTTHandler::setNetworkID(string networkID) { mNetworkID = networkID; }
+void MQTTHandler::setSettingsMessage(const SettingsMessage message)
+{
+    mSettings = message;
+}
 
-void MQTTHandler::setNetworkPW(string networkPW) { mNetworkPW = networkPW; }
-
-void MQTTHandler::setBrokerIP(string brokerIP) { mBrokerIP = brokerIP; }
+SettingsMessage MQTTHandler::getSettingsMessage()
+{
+    return mSettings;
+}
