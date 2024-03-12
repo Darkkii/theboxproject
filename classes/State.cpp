@@ -7,16 +7,22 @@ State::State(const shared_ptr<I2CHandler> &i2cHandler,
              const shared_ptr<HMP60> &hmp60,
              const shared_ptr<MIO12V> &mio12V,
              const shared_ptr<SDP600> &sdp600,
-             const shared_ptr<MQTTHandler> &mqttHandler) :
+             const shared_ptr<MQTTHandler> &mqttHandler,
+             const shared_ptr<Eeprom> &eeprom) :
         mDisplay(i2cHandler->getI2CBus(1)),
         mGMP252{gmp252},
         mHMP60{hmp60},
         mFanController(mio12V),
         mSDP600{sdp600},
         mMQTTHandler(mqttHandler),
-        mMode_auto(true), // get from EEPROM ?
-        mTargetFanSpeed(0), // get from EEPROM ?
-        mTargetPressure(0) { // get from EEPROM ?
+        mEEPROM(eeprom) {
+    istringstream sstr;
+    sstr.str(mEEPROM->read(EEPROM_REG_MODE, 1));
+    sstr >> mMode_auto;
+    sstr.str(mEEPROM->read(EEPROM_REG_TAR_FAN, 2));
+    sstr >> mTargetFanSpeed;
+    sstr.str(mEEPROM->read(EEPROM_REG_TAR_PRES, 2));
+    sstr >> mTargetPressure;
     mFanController->setFanSpeed(mTargetFanSpeed);
     mInputFanSpeed = mTargetFanSpeed;
     mInputPressure = mTargetPressure;
@@ -142,10 +148,10 @@ bool State::ConnectMQTT(string networkID, string networkPW, string BrokerIP) {
     mDisplay.show();
     bool success = mMQTTHandler->connect(std::move(networkID), std::move(networkPW), std::move(BrokerIP));
     if (success) {
-        // (mNetworkID)
-        // (mNetworkPW)
-        // (mBrokerIP)
         mDisplay.text("Success!", 0, 30);
+        mEEPROM->write(EEPROM_REG_NETWORK_ID, mNetworkID, mNetworkID.length());
+        mEEPROM->write(EEPROM_REG_NETWORK_PW, mNetworkPW, mNetworkPW.length());
+        mEEPROM->write(EEPROM_REG_NETWORK_ID, mBrokerIP, mBrokerIP.length());
     } else {
         mDisplay.text("Failed!", 0, 30);
     }
@@ -229,8 +235,8 @@ void State::toggleMode() {
         mInputPressure = mTargetPressure;
         mInputFanSpeed = mCurrentFanSpeed;
         mTargetFanSpeed = mCurrentFanSpeed;
-        // (mMode_auto)
-        // (mTargetFanSpeed)
+        mEEPROM->write(EEPROM_REG_MODE, mMode_auto ? "1" : "0", 1);
+        mEEPROM->write(EEPROM_REG_TAR_FAN, to_string(mTargetFanSpeed), 2);
     }
     update();
 }
@@ -251,10 +257,10 @@ void State::setTarget() {
     } else {
         if (mMode_auto) {
             mTargetPressure = mInputPressure;
-            // (mTargetPressure)
+            mEEPROM->write(EEPROM_REG_TAR_PRES, to_string(mTargetPressure), 2);
         } else {
             mTargetFanSpeed = mInputFanSpeed;
-            // (mTargetFanSpeed)
+            mEEPROM->write(EEPROM_REG_TAR_FAN, to_string(mTargetFanSpeed), 2);
         }
     }
     update();

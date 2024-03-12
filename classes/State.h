@@ -15,12 +15,19 @@
 #include "MQTTHandler.h"
 #include "StatusMessage.h"
 #include "SettingsMessage.h"
+#include "Eeprom.h"
 
 #define PRESSURE_ADJUSTMENT_LATENCY_US 3000000
 #define PRESSURE_TARGET_ACCURACY 4
 #define MIN_PRESSURE_TARGET 10
 #define OLED_MAX_STR_WIDTH 16
 
+#define EEPROM_REG_NETWORK_ID 0x00
+#define EEPROM_REG_NETWORK_PW 0x40
+#define EEPROM_REG_BROKER_IP  0x80
+#define EEPROM_REG_MODE       0x81
+#define EEPROM_REG_TAR_PRES   0x83
+#define EEPROM_REG_TAR_FAN    0x85
 
 class State : public Observer
 {
@@ -32,6 +39,7 @@ private:
     std::shared_ptr<SDP600> mSDP600;
     std::shared_ptr<State> mState;
     std::shared_ptr<MQTTHandler> mMQTTHandler;
+    std::shared_ptr<Eeprom> mEEPROM;
 
     bool mMode_auto;
     bool mMQTT_input{false};
@@ -81,7 +89,8 @@ public:
           const std::shared_ptr<HMP60> &hmp60,
           const std::shared_ptr<MIO12V> &mio12V,
           const std::shared_ptr<SDP600> &sdp600,
-          const std::shared_ptr<MQTTHandler> &mqttHandler);
+          const std::shared_ptr<MQTTHandler> &mqttHandler,
+          const std::shared_ptr<Eeprom> &eeprom);
     void update() override;
     void update(SettingsMessage sm) override;
 

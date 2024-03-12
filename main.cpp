@@ -14,6 +14,7 @@
 #include "PicoSW.h"
 #include "I2CHandler.h"
 #include "State.h"
+#include "Eeprom.h"
 
 // We are using pins 0 and 1, but see the GPIO function select table in the
 // datasheet for information on which other pins can be used.
@@ -26,6 +27,7 @@
 #define UART_TX_PIN 4
 #define UART_RX_PIN 5
 #endif
+
 #include "MQTTHandler.h"
 #include "SettingsMessage.h"
 #include "nlohmann/json.hpp"
@@ -48,29 +50,31 @@
 //#define STOP_BITS 2 // for real system
 
 void messageHandler(MQTT::MessageData &md);
+
 // static global pointer to allow mqtt callback function to access public member functions
 static shared_ptr<MQTTHandler> mqttHandler;
 
-int main()
-{
+int main() {
     // Initialize chosen serial port
     stdio_init_all();
 
     printf("\nBoot\n");
     mqttHandler = make_shared<MQTTHandler>(messageHandler);
 
-    auto i2cHandler{ make_shared<I2CHandler>() };
+    auto i2cHandler{make_shared<I2CHandler>()};
 
     auto modbus_poll = make_timeout_time_ms(3000);
-    auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE, STOP_BITS) };
-    auto rtu_client{ std::make_shared<ModbusClient>(uart) };
+    auto uart{std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE, STOP_BITS)};
+    auto rtu_client{std::make_shared<ModbusClient>(uart)};
 
-    auto fanController{ make_shared<MIO12V>(rtu_client) };
-    auto gmp252{ make_shared<GMP252>(rtu_client) };
-    auto hmp252{ make_shared<HMP60>(rtu_client) };
-    auto sdp600{ make_shared<SDP600>(i2cHandler->getI2CBus(1)) };
+    auto fanController{make_shared<MIO12V>(rtu_client)};
+    auto gmp252{make_shared<GMP252>(rtu_client)};
+    auto hmp252{make_shared<HMP60>(rtu_client)};
+    auto sdp600{make_shared<SDP600>(i2cHandler->getI2CBus(1))};
 
-    auto state{ make_shared<State>(i2cHandler, gmp252, hmp252, fanController, sdp600, mqttHandler) };
+    auto eeprom{make_shared<Eeprom>(i2cHandler)};
+
+    auto state{make_shared<State>(i2cHandler, gmp252, hmp252, fanController, sdp600, mqttHandler, eeprom)};
 
     fanController->addObserver(state);
     mqttHandler->addObserver(state);
@@ -79,7 +83,9 @@ int main()
     PicoSW_event swEvent;
 
 #if MQTT_RECONNECTABLE
-    if (!state->ConnectMQTT("asd", "aasdasdsd", "1.1.1.1")) { // get EEPROM
+    if (!state->ConnectMQTT(eeprom->read(EEPROM_REG_NETWORK_ID, 64),
+                            eeprom->read(EEPROM_REG_NETWORK_PW, 64),
+                            eeprom->read(EEPROM_REG_BROKER_IP, 64))) {
         state->ConnectMQTT(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
     }
 #else
@@ -88,8 +94,7 @@ int main()
     auto mqttTimeout = make_timeout_time_ms(5000);
 
     while (true) {
-        if (time_reached(mqttTimeout))
-        {
+        if (time_reached(mqttTimeout)) {
             state->updateMQTT();
             mqttTimeout = make_timeout_time_ms(5000);
         }
@@ -133,13 +138,12 @@ int main()
     }
 }
 
-void messageHandler(MQTT::MessageData &md)
-{
+void messageHandler(MQTT::MessageData &md) {
     MQTT::Message &message = md.message;
     char payload[256];
-    strncpy(payload, (char *)message.payload, message.payloadlen);
-    string payloadString{ payload };
-    istringstream stream{ payloadString };
+    strncpy(payload, (char *) message.payload, message.payloadlen);
+    string payloadString{payload};
+    istringstream stream{payloadString};
     bool mode = true;
     int setpoint = 0;
     stream.ignore(256, ' ');
