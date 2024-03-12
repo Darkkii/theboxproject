@@ -3,6 +3,8 @@
 #include <string>
 #include <sstream>
 #include <memory>
+#include "IPStack.h"
+#include "Countdown.h"
 #include "MQTTClient.h"
 #include "MQTTHandler.h"
 #include "SettingsMessage.h"
@@ -13,26 +15,22 @@ using namespace std;
 #define USE_MQTT
 
 void messageHandler(MQTT::MessageData &md);
-// static global pointer to allow mqtt callback function to access public member functions
+// // static global pointer to allow mqtt callback function to access public member functions
 static shared_ptr<MQTTHandler> mqttHandler;
 
 int main()
 {
     // Initialize chosen serial port
     stdio_init_all();
-
     printf("\nBoot\n");
-    mqttHandler = make_shared<MQTTHandler>(messageHandler);
 
-#ifdef USE_MQTT
+    mqttHandler = make_shared<MQTTHandler>(messageHandler);
+    // mqttHandler->connect("PICOQ5-9k195", "Q5-9k195", "192.168.137.1");
     mqttHandler->connect();
     auto mqttTimeout = make_timeout_time_ms(5000);
-#endif
 
     while (true)
     {
-
-#ifdef USE_MQTT
         if (time_reached(mqttTimeout))
         {
             mqttHandler->update();
@@ -40,8 +38,6 @@ int main()
         }
 
         mqttHandler->keepAlive();
-#endif
-
     }
 }
 

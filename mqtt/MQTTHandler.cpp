@@ -46,74 +46,50 @@ bool MQTTHandler::mMQTTSubscribe(const string topic)
     return true;
 }
 
-void MQTTHandler::connect()
+bool MQTTHandler::connect()
 {
     int retry = 0;
 
-    if (!mIPStack->isLinkUp())
-    {
-        while (!mIPStack->isLinkUp() && ++retry < 3)
-        {
-            printf("Wifi connection error. Retrying...\n");
-            mIPStack->retry(mNetworkID.c_str(), mNetworkPW.c_str());
-        }
-
-        if (!mIPStack->isLinkUp())
-        {
-            printf("Wifi network unavailable.\n");
-            return;
-        }
-    }
-
-    mMQTTClient = make_shared<MQTT::Client<IPStack, Countdown, 256>>(*mIPStack);
-    mMQTTEnabled = mMQTTConnect();
-
-    if (mMQTTEnabled)
-    {
-        mMQTTSubscribe(mSettingsTopic);
-    }
-}
-
-void MQTTHandler::reconnect(std::string networkID, std::string networkPW, std::string brokerIP)
-{
-    int retry = 0;
-
-    mNetworkID = networkID;
-    mNetworkPW = networkPW;
-    mBrokerIP = brokerIP;
-
-    printf("Changing wifi network.\n");
-
-    if (mIPStack->isLinkUp())
-    {
-        mMQTTClient->disconnect();
-        mIPStack->disconnect();
-    }
-
-    mMQTTEnabled = false;
-
-    mIPStack.reset(new IPStack(mNetworkID.c_str(), mNetworkPW.c_str()));
     while (!mIPStack->isLinkUp() && ++retry < 3)
     {
         printf("Wifi connection error. Retrying...\n");
         mIPStack->retry(mNetworkID.c_str(), mNetworkPW.c_str());
     }
 
-
     if (mIPStack->isLinkUp())
     {
-        mMQTTClient.reset(new MQTT::Client<IPStack, Countdown, 256>(*mIPStack));
+        mMQTTClient = make_shared<MQTT::Client<IPStack, Countdown, 256>>(*mIPStack);
         mMQTTEnabled = mMQTTConnect();
 
         if (mMQTTEnabled)
         {
             mMQTTSubscribe(mSettingsTopic);
+            return true;
         }
     }
-    else
+
+    printf("Wifi network unavailable.\n");
+    return false;
+}
+
+bool MQTTHandler::connect(std::string networkID, std::string networkPW, std::string brokerIP)
+{
+    mNetworkID = networkID;
+    mNetworkPW = networkPW;
+    mBrokerIP = brokerIP;
+
+    if (mIPStack->isLinkUp())
     {
-        printf("Wifi network unavailable.\n");
+        mMQTTClient->disconnect();
+        mMQTTClient.reset();
+        mIPStack->disconnect();
+        mIPStack.reset();
     }
+
+    mMQTTEnabled = false;
+    mIPStack = make_shared<IPStack>(mNetworkID.c_str(), mNetworkPW.c_str());
+
+    return connect();
 }
 
 void MQTTHandler::send(StatusMessage statusMessage)
