@@ -141,15 +141,16 @@ void State::OLED_MQTTCredentials() {
 
 bool State::ConnectMQTT(string networkID, string networkPW, string BrokerIP) {
     mDisplay.fill(0);
-    mDisplay.text("MQTT Connecting to", 0, 0);
-    mDisplay.text(networkID, 0, 9);
+    mDisplay.text("Connecting...", 0, 0);
+    mDisplay.text("SSID:", 0, 11);
+    mDisplay.text(networkID, 0, 20);
     mDisplay.show();
     bool success = mMQTTHandler->connect(std::move(networkID), std::move(networkPW), std::move(BrokerIP));
     if (success) {
         // EEPROM
-        mDisplay.text("MQTT connected successfully!", 0, 18);
+        mDisplay.text("Success!", 0, 30);
     } else {
-        mDisplay.text("MQTT connection failed!", 0, 18);
+        mDisplay.text("Failed!", 0, 30);
     }
     mDisplay.show();
     sleep_ms(5000);
@@ -425,12 +426,12 @@ void State::adjustFan() {
 void State::updateMQTT() {
     mMQTTHandler->send(StatusMessage(
             mCurrentFanSpeed,
-            mMode_auto ? mTargetPressure : mTargetFanSpeed,
+            mMode_auto ? mTargetPressure : mTargetFanSpeed / 10,
             mCurrentPressure,
             mMode_auto,
             false,
-            mCO2,
-            mRH,
-            mTemperature));
+            static_cast<int>(mCO2),
+            static_cast<int>(mRH),
+            static_cast<int>(mTemperature)));
     mMQTTHandler->update();
 }

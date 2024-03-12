@@ -36,7 +36,7 @@
 #define DEFAULT_NETWORK_PW "SmartIot"
 #define DEFAULT_BROKER_IP  "192.168.1.10"
 
-#define MQTT_RECONNECTABLE false
+#define MQTT_RECONNECTABLE true
 
 #define STOP_BITS 1 // for simulator
 //#define STOP_BITS 2 // for real system
@@ -74,7 +74,7 @@ int main()
 #if MQTT_RECONNECTABLE
     //mqttHandler->connect("PICOQ5-9k195", "Q5-9k195", "192.168.137.1");
     if (!state->ConnectMQTT("asd", "aasdasdsd", "1.1.1.1")) { // get EEPROM
-        mqttHandler->connect(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
+        state->ConnectMQTT(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
     }
 #else
     state->ConnectMQTT(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
@@ -118,6 +118,8 @@ int main()
 #if MQTT_RECONNECTABLE
                     state->toggle_MQTT_input();
 #endif
+                    break;
+                case NO_EVENT:
                     break;
             }
         }
