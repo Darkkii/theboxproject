@@ -29,7 +29,6 @@ uint16_t GMP252::getCO2Status() { return mCO2StatusRegister.read(); }
 // Update sensor values.
 void GMP252::update()
 {
-    uint32_t temp;
     mCO2.u = mCO2RegisterLow.read();
     sleep_ms(5);
     mCO2.u |= (mCO2RegisterHigh.read() << 16);
