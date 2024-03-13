@@ -34,17 +34,17 @@
 
 #define BAUD_RATE 9600
 
-#if 0
+#if 1
 #define DEFAULT_NETWORK_ID "SmartIotMQTT"
 #define DEFAULT_NETWORK_PW "SmartIot"
 #define DEFAULT_BROKER_IP  "192.168.1.10"
 #else
-#define DEFAULT_NETWORK_ID "PICOQ5-9k195"
-#define DEFAULT_NETWORK_PW "Q5-9k195"
+#define DEFAULT_NETWORK_ID "abc"
+#define DEFAULT_NETWORK_PW "11111111"
 #define DEFAULT_BROKER_IP  "192.168.137.1"
 #endif
 
-#define MQTT_RECONNECTABLE true
+#define MQTT_RECONNECTABLE false
 
 #define STOP_BITS 1 // for simulator
 //#define STOP_BITS 2 // for real system
@@ -83,13 +83,18 @@ int main() {
     PicoSW_event swEvent;
 
 #if MQTT_RECONNECTABLE
-    if (!state->ConnectMQTT(eeprom->read(EEPROM_REG_NETWORK_ID, 64),
-                            eeprom->read(EEPROM_REG_NETWORK_PW, 64),
-                            eeprom->read(EEPROM_REG_BROKER_IP, 64))) {
-        state->ConnectMQTT(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
+    if (!state->ConnectMQTT(eeprom->read(EEPROM_REG_NETWORK_ID),
+                            eeprom->read(EEPROM_REG_NETWORK_PW),
+                            eeprom->read(EEPROM_REG_BROKER_IP))) {
+        state->ConnectMQTT(DEFAULT_NETWORK_ID,
+                           DEFAULT_NETWORK_PW,
+                           DEFAULT_BROKER_IP);
     }
 #else
-    state->ConnectMQTT(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
+    state->ConnectMQTT(eeprom->read(EEPROM_REG_NETWORK_ID),
+                       eeprom->read(EEPROM_REG_NETWORK_PW),
+                       eeprom->read(EEPROM_REG_BROKER_IP));
+    //state->ConnectMQTT(DEFAULT_NETWORK_ID, DEFAULT_NETWORK_PW, DEFAULT_BROKER_IP);
 #endif //
     auto mqttTimeout = make_timeout_time_ms(5000);
 
@@ -127,8 +132,9 @@ int main() {
                     break;
                 case SW_2_PRESS:
 #if MQTT_RECONNECTABLE
-                    state->toggle_MQTT_input();
+
 #endif
+                    state->toggle_MQTT_input();
                     break;
                 case NO_EVENT:
                     break;

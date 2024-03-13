@@ -24,6 +24,10 @@ uint16_t MIO12V::getFanSpeed()
 
 void MIO12V::setFanSpeed(int speed)
 {
+    if (mFanSpeed == 0) {
+        mFanSpeedRegister.write(1000);
+        sleep_ms(5);
+    }
     if (speed < 0 || speed > 1000)
     {
         speed = speed < 1000 ? 0 : 1000;

@@ -37,9 +37,8 @@ private:
     SettingsMessage mSettings;
 
 public:
-    MQTTHandler(messageHandlerFptr messageHandler);
+    explicit MQTTHandler(messageHandlerFptr messageHandler);
     enum topicNumber : int;
-    bool connect();
     bool connect(std::string networkID, std::string networkPW, std::string brokerIP);
     void send(StatusMessage statusMessage);
     void keepAlive();
