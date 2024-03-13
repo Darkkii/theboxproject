@@ -6,10 +6,10 @@ using namespace std;
 GMP252::GMP252(shared_ptr<ModbusClient> modbus) :
     mCO2{ 0 },
     mTemperature{ 0 },
-    mCO2RegisterLow{ modbus, mModbusAddress, CO2_REGISTER_LOW, false },
-    mCO2RegisterHigh{ modbus, mModbusAddress, CO2_REGISTER_HIGH, false },
-    mTemperatureRegisterLow{ modbus, mModbusAddress, TEMPERATURE_REGISTER_LOW, false },
-    mTemperatureRegisterHigh{ modbus, mModbusAddress, TEMPERATURE_REGISTER_HIGH, false },
+    mCO2RegisterLow{ modbus, mModbusAddress, CO2_REGISTER_LOW },
+    mCO2RegisterHigh{ modbus, mModbusAddress, CO2_REGISTER_HIGH },
+    mTemperatureRegisterLow{ modbus, mModbusAddress, TEMPERATURE_REGISTER_LOW },
+    mTemperatureRegisterHigh{ modbus, mModbusAddress, TEMPERATURE_REGISTER_HIGH },
     mDeviceStatusRegister{ modbus, mModbusAddress, DEVICE_STATUS_REGISTER, false },
     mCO2StatusRegister{ modbus, mModbusAddress, CO2_STATUS_REGISTER, false }
 {}
