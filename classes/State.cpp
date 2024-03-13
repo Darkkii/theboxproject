@@ -153,7 +153,7 @@ bool State::ConnectMQTT(string networkID, string networkPW, string BrokerIP) {
     cout << mBrokerIP << endl;
     mDisplay.text(networkID, 0, 22);
     mDisplay.show();
-    bool success = mMQTTHandler->connect(std::move(networkID), std::move(networkPW), "192.168.137.1");
+    bool success = mMQTTHandler->connect(std::move(networkID), std::move(networkPW), "192.168.1.10");
     if (success) {
         mDisplay.text("Success!", 0, 33);
         mEEPROM->write(EEPROM_REG_NETWORK_ID, mNetworkID);

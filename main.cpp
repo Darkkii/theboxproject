@@ -46,8 +46,8 @@
 
 #define MQTT_RECONNECTABLE false
 
-#define STOP_BITS 1 // for simulator
-//#define STOP_BITS 2 // for real system
+//#define STOP_BITS 1 // for simulator
+#define STOP_BITS 2 // for real system
 
 void messageHandler(MQTT::MessageData &md);
 
