@@ -33,8 +33,12 @@ uint32_t HMP60::getErrorStatus()
 }
 void HMP60::update()
 {
-    mRelativeHumidity.u = mHumidityRegisterLow.read() | (mHumidityRegisterHigh.read() << 16);
+    mRelativeHumidity.u = mHumidityRegisterLow.read();
     sleep_ms(5);
-    mTemperature.u = mTemperatureRegisterLow.read() | (mTemperatureRegisterHigh.read() << 16);
+    mRelativeHumidity.u |= (mHumidityRegisterHigh.read() << 16);
+    sleep_ms(5);
+    mTemperature.u = mTemperatureRegisterLow.read();
+    sleep_ms(5);
+    mTemperature.u |= (mTemperatureRegisterHigh.read() << 16);
     sleep_ms(5);
 }
