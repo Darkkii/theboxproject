@@ -22,13 +22,6 @@
 #define MIN_PRESSURE_TARGET 10
 #define OLED_MAX_STR_WIDTH 16
 
-#define EEPROM_REG_NETWORK_ID 0x00
-#define EEPROM_REG_NETWORK_PW 0x40
-#define EEPROM_REG_BROKER_IP  0x80
-#define EEPROM_REG_MODE       0xC0
-#define EEPROM_REG_TAR_PRES   0x100
-#define EEPROM_REG_TAR_FAN    0x140
-
 class State : public Observer
 {
 private:
@@ -42,11 +35,10 @@ private:
     std::shared_ptr<Eeprom> mEEPROM;
 
     bool mMode_auto;
-    bool mMQTT_input{false};
+    bool mStatusScreen{false};
     float mCO2{0};
     float mTemperature{0};
     float mRH{0};
-
     uint16_t mCurrentFanSpeed{0};
     uint16_t mTargetFanSpeed;
     uint16_t mInputFanSpeed;
@@ -73,8 +65,6 @@ private:
     enum MQTTinput_stage_enum mMQTT_input_stage{networkID};
 
     char mInputChar{'0'};
-    int mInputNumber{0};
-    int mBrokerPeriods{0};
     std::string mNetworkID;
     std::string mNetworkPW;
     std::string mBrokerIP;

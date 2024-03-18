@@ -21,13 +21,10 @@ State::State(const shared_ptr<I2CHandler> &i2cHandler,
     sstr >> mMode_auto;
     sstr.str(mEEPROM->read(EEPROM_REG_TAR_FAN));
     sstr >> mTargetFanSpeed;
-    if (mTargetFanSpeed < 0) mTargetFanSpeed = 0;
-    if (mTargetFanSpeed > 1000) mTargetFanSpeed = 1000;
+    if (mTargetFanSpeed < 0 || mTargetFanSpeed > 1000) mTargetFanSpeed = 0;
     sstr.str(mEEPROM->read(EEPROM_REG_TAR_PRES));
     sstr >> mTargetPressure;
-    if (mTargetPressure < 0) mTargetPressure = 0;
-    if (mTargetPressure > 125) mTargetPressure = 125;
-    mFanController->setFanSpeed(mTargetFanSpeed / 10);
+    if (mTargetPressure < 0 || mTargetPressure > 125) mTargetPressure = 0;
     mInputFanSpeed = mTargetFanSpeed;
     mInputPressure = mTargetPressure;
 }
@@ -148,9 +145,9 @@ bool State::ConnectMQTT(string networkID, string networkPW, string BrokerIP) {
     mDisplay.fill(0);
     mDisplay.text("Connecting...", 0, 0);
     mDisplay.text("SSID:", 0, 11);
-    cout << mNetworkID << endl;
-    cout << mNetworkPW << endl;
-    cout << mBrokerIP << endl;
+    cout << "SSID: " << mNetworkID << endl;
+    cout << "Network PW: " << mNetworkPW << endl;
+    cout << "MQTT IP: " << mBrokerIP << endl;
     mDisplay.text(networkID, 0, 22);
     mDisplay.show();
     bool success = mMQTTHandler->connect(std::move(networkID), std::move(networkPW), "192.168.1.10");
@@ -168,7 +165,7 @@ bool State::ConnectMQTT(string networkID, string networkPW, string BrokerIP) {
 }
 
 void State::updateOLED() {
-    if (mMQTT_input) {
+    if (mStatusScreen) {
         OLED_MQTTCredentials();
     } else {
         OLED_VentStatus();
@@ -197,7 +194,7 @@ void State::update() {
     fetchValues();
     writeStatusLines();
     updateOLED();
-    //updateCout();
+    //updateCout(); // slows system down a lot
 }
 
 void State::update(SettingsMessage sm) {
@@ -215,8 +212,8 @@ void State::update(SettingsMessage sm) {
 }
 
 void State::toggle_MQTT_input() {
-    mMQTT_input = !mMQTT_input;
-    if (mMQTT_input) {
+    mStatusScreen = !mStatusScreen;
+    if (mStatusScreen) {
         mNetworkID = "";
         mNetworkPW = "";
         mBrokerIP = "";
@@ -227,18 +224,16 @@ void State::toggle_MQTT_input() {
 }
 
 void State::toggleMode() {
-    if (mMQTT_input) {
+    if (mStatusScreen) {
         switch (mMQTT_input_stage) {
             case networkID:
                 mMQTT_input_stage = networkPW;
                 break;
             case networkPW:
                 mMQTT_input_stage = brokerIP;
-                mInputNumber = 0;
-                mBrokerPeriods = 0;
                 break;
             case brokerIP:
-                mMQTT_input = false;
+                mStatusScreen = false;
                 ConnectMQTT(mNetworkID, mNetworkPW, mBrokerIP);
                 break;
         }
@@ -254,7 +249,7 @@ void State::toggleMode() {
 }
 
 void State::setTarget() {
-    if (mMQTT_input) {
+    if (mStatusScreen) {
         switch (mMQTT_input_stage) {
             case networkID:
                 mNetworkID += mInputChar;
@@ -279,13 +274,13 @@ void State::setTarget() {
 }
 
 void State::backspace() {
-    if (mMQTT_input) {
+    if (mStatusScreen) {
         switch (mMQTT_input_stage) {
             case networkID:
                 if (mNetworkID.length() > 0) {
                     mNetworkID.pop_back();
                 } else {
-                    mMQTT_input = false;
+                    mStatusScreen = false;
                 }
                 break;
             case networkPW:
@@ -314,7 +309,7 @@ void State::backspace() {
 }
 
 void State::clockwise() {
-    if (mMQTT_input) {
+    if (mStatusScreen) {
         switch (mInputChar) {
             case '9':
                 mInputChar = 'A';
@@ -351,7 +346,7 @@ void State::clockwise() {
 }
 
 void State::counter_clockwise() {
-    if (mMQTT_input) {
+    if (mStatusScreen) {
         switch (mInputChar) {
             case '0':
                 break;
