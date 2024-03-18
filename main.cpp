@@ -54,7 +54,7 @@ int main()
     auto i2cHandler{ make_shared<I2CHandler>() };
 
     auto modbus_poll = make_timeout_time_ms(3000);
-    auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, BAUD_RATE, STOP_BITS) };
+    auto uart{ std::make_shared<PicoUart>(UART_NR, UART_TX_PIN, UART_RX_PIN, MODBUS_BAUD_RATE, STOP_BITS) };
     auto rtu_client{ std::make_shared<ModbusClient>(uart) };
 
     auto fanController{ make_shared<MIO12V>(rtu_client) };
