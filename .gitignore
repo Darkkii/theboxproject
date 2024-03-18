@@ -33,6 +33,7 @@
 
 # Project build files
 **/.vscode/*
+**/.cache/*
 **/bin/
 **/obj/
 **/[Bb]uild/
