@@ -87,7 +87,7 @@ public:
     void update(SettingsMessage sm) override;
 
     void toggleMode();
-    void toggle_MQTT_input();
+    void toggleScreen();
     void setTarget();
     void backspace();
     void clockwise();

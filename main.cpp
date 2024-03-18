@@ -111,7 +111,7 @@ int main()
                     state->backspace();
                     break;
                 case SW_2_PRESS:
-                    state->toggle_MQTT_input();
+                    state->toggleScreen();
                     break;
                 case NO_EVENT:
                     break;

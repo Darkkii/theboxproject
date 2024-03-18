@@ -211,7 +211,7 @@ void State::update(SettingsMessage sm) {
     updateMQTT();
 }
 
-void State::toggle_MQTT_input() {
+void State::toggleScreen() {
     mStatusScreen = !mStatusScreen;
     if (mStatusScreen) {
         mNetworkID = "";
