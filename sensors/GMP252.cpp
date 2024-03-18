@@ -6,10 +6,10 @@ using namespace std;
 GMP252::GMP252(shared_ptr<ModbusClient> modbus) :
     mCO2{ 0 },
     mTemperature{ 0 },
-    mCO2RegisterLow{ modbus, mModbusAddress, CO2_REGISTER_LOW, false },
-    mCO2RegisterHigh{ modbus, mModbusAddress, CO2_REGISTER_HIGH, false },
-    mTemperatureRegisterLow{ modbus, mModbusAddress, TEMPERATURE_REGISTER_LOW, false },
-    mTemperatureRegisterHigh{ modbus, mModbusAddress, TEMPERATURE_REGISTER_HIGH, false },
+    mCO2RegisterLow{ modbus, mModbusAddress, CO2_REGISTER_LOW },
+    mCO2RegisterHigh{ modbus, mModbusAddress, CO2_REGISTER_HIGH },
+    mTemperatureRegisterLow{ modbus, mModbusAddress, TEMPERATURE_REGISTER_LOW },
+    mTemperatureRegisterHigh{ modbus, mModbusAddress, TEMPERATURE_REGISTER_HIGH },
     mDeviceStatusRegister{ modbus, mModbusAddress, DEVICE_STATUS_REGISTER, false },
     mCO2StatusRegister{ modbus, mModbusAddress, CO2_STATUS_REGISTER, false }
 {}
@@ -29,7 +29,6 @@ uint16_t GMP252::getCO2Status() { return mCO2StatusRegister.read(); }
 // Update sensor values.
 void GMP252::update()
 {
-    uint32_t temp;
     mCO2.u = mCO2RegisterLow.read();
     sleep_ms(5);
     mCO2.u |= (mCO2RegisterHigh.read() << 16);
