@@ -29,7 +29,6 @@ private:
     std::shared_ptr<HMP60> mHMP60;
     std::shared_ptr<MIO12V> mFanController;
     std::shared_ptr<SDP600> mSDP600;
-    std::shared_ptr<State> mState;
     std::shared_ptr<MQTTHandler> mMQTTHandler;
     std::shared_ptr<Eeprom> mEEPROM;
 
