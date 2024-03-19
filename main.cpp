@@ -35,8 +35,8 @@
 #define DEFAULT_BROKER_IP  "192.168.137.1"
 #endif
 
-//#define STOP_BITS 1 // for simulator
-#define STOP_BITS 2 // for real system
+#define STOP_BITS 1 // for simulator
+//#define STOP_BITS 2 // for real system
 
 void messageHandler(MQTT::MessageData &md);
 
@@ -84,7 +84,7 @@ int main()
 
     while (true) {
         if (time_reached(passiveUpdateInterval)) {
-            passiveUpdateInterval = make_timeout_time_ms(5000);
+            passiveUpdateInterval = make_timeout_time_ms(1000);
             gmp252->update();
             hmp252->update();
             sdp600->update();

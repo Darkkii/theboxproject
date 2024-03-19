@@ -17,7 +17,7 @@
 #include "SettingsMessage.h"
 #include "Eeprom.h"
 
-#define PRESSURE_ADJUSTMENT_LATENCY_US 3000000
+#define FAN_ADJUSTMENT_LATENCY_MS 5000
 #define PRESSURE_TARGET_ACCURACY 4
 #define MIN_PRESSURE_TARGET 10
 #define OLED_MAX_STR_WIDTH 16
@@ -46,7 +46,7 @@ private:
     int16_t mTargetPressure;
     int16_t mInputPressure;
 
-    uint32_t mPrevFanAdjustment_us{0};
+    absolute_time_t mFanAdjustmentTimeout_ms{make_timeout_time_ms(0)};
 
     std::stringstream mCO2_line;
     std::stringstream mTemp_line;
