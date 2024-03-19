@@ -416,11 +416,9 @@ void State::adjustFan() {
                 mSDP600->update();
                 auto currentPressure = static_cast<int16_t>(mSDP600->getPressure() / 240);
                 auto targetDelta = static_cast<int16_t>(mTargetPressure - currentPressure);
-                if (abs(targetDelta) > PRESSURE_TARGET_ACCURACY) {
-                    int newFanSpeed = mCurrentFanSpeed + 10 * targetDelta / 2;
-                    mFanController->setFanSpeed(newFanSpeed);
-                    mFanAdjustmentTimeout_ms = make_timeout_time_ms(FAN_ADJUSTMENT_LATENCY_MS);
-                }
+                int newFanSpeed = mCurrentFanSpeed + targetDelta * 4;
+                mFanController->setFanSpeed(newFanSpeed);
+                mFanAdjustmentTimeout_ms = make_timeout_time_ms(FAN_ADJUSTMENT_LATENCY_MS);
             } else if (mFanController->getFanSpeed() != 0) {
                 mFanController->setFanSpeed(0);
                 mFanAdjustmentTimeout_ms = make_timeout_time_ms(FAN_ADJUSTMENT_LATENCY_MS);
