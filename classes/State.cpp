@@ -411,18 +411,20 @@ void State::adjustInputPressure(int x) {
 
 void State::adjustFan() {
     if (mMode_auto) {
-        if (time_reached(mFanAdjustmentTimeout_ms)) {
-            if (mTargetPressure > MIN_PRESSURE_TARGET) {
+        if (mTargetPressure > MIN_PRESSURE_TARGET) {
+            if (time_reached(mFanAdjustmentTimeout_ms)) {
                 mSDP600->update();
                 auto currentPressure = static_cast<int16_t>(mSDP600->getPressure() / 240);
                 auto targetDelta = static_cast<int16_t>(mTargetPressure - currentPressure);
-                int newFanSpeed = mCurrentFanSpeed + targetDelta * 4;
-                mFanController->setFanSpeed(newFanSpeed);
-                mFanAdjustmentTimeout_ms = make_timeout_time_ms(FAN_ADJUSTMENT_LATENCY_MS);
-            } else if (mFanController->getFanSpeed() != 0) {
-                mFanController->setFanSpeed(0);
-                mFanAdjustmentTimeout_ms = make_timeout_time_ms(FAN_ADJUSTMENT_LATENCY_MS);
+                if (targetDelta != 0) {
+                    int newFanSpeed = mCurrentFanSpeed + targetDelta * 4;
+                    mFanController->setFanSpeed(newFanSpeed);
+                    mFanAdjustmentTimeout_ms = make_timeout_time_ms(FAN_ADJUSTMENT_LATENCY_MS);
+                }
             }
+        } else if (mFanController->getFanSpeed() != 0) {
+            mFanController->setFanSpeed(0);
+            mFanAdjustmentTimeout_ms = make_timeout_time_ms(FAN_ADJUSTMENT_LATENCY_MS);
         }
     } else {
         if (mTargetFanSpeed != mFanController->getFanSpeed())

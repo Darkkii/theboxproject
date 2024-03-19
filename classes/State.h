@@ -18,8 +18,7 @@
 #include "Eeprom.h"
 
 #define FAN_ADJUSTMENT_LATENCY_MS 5000
-#define PRESSURE_TARGET_ACCURACY 4
-#define MIN_PRESSURE_TARGET 10
+#define MIN_PRESSURE_TARGET 5
 #define OLED_MAX_STR_WIDTH 16
 
 class State : public Observer
