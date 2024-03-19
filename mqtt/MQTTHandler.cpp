@@ -1,7 +1,5 @@
 #include "MQTTHandler.h"
 
-#include <utility>
-
 using namespace std;
 
 MQTTHandler::MQTTHandler(messageHandlerFptr messageHandler) :
@@ -48,24 +46,27 @@ bool MQTTHandler::mMQTTSubscribe(const string topic)
     return true;
 }
 
-bool MQTTHandler::connect()
+bool MQTTHandler::connect(std::string networkID, std::string networkPW, std::string brokerIP)
 {
     int retry = 0;
-
-    if (mIPStack != nullptr)
-    {
-        mIPStack->disconnect();
-        mIPStack.reset();
-    }
 
     if (mMQTTEnabled)
     {
         mMQTTClient->disconnect();
         mMQTTClient.reset();
+        mMQTTEnabled = false;
     }
 
-    mMQTTEnabled = false;
+    if (mIPStack != nullptr)
+    {
+        mIPStack->disconnect();
+        mIPStack.reset();
+        sleep_ms(10000);
+    }
 
+    mNetworkID = networkID;
+    mNetworkPW = networkPW;
+    mBrokerIP = brokerIP;
 
     mIPStack = make_shared<IPStack>(mNetworkID.c_str(), mNetworkPW.c_str());
 
@@ -94,33 +95,26 @@ bool MQTTHandler::connect()
     return false;
 }
 
-bool MQTTHandler::connect(std::string networkID, std::string networkPW, std::string brokerIP)
-{
-    mNetworkID = networkID;
-    mNetworkPW = networkPW;
-    mBrokerIP = brokerIP;
-
-    return connect();
-}
-
 void MQTTHandler::send(StatusMessage statusMessage)
 {
-    statusMessage.setMessageNumber(++mMessageCount);
-    string message = statusMessage;
-    if (message.length() < 256)
+    if (mMQTTEnabled)
     {
-        MQTT::Message mqttMessage;
-        char buf[256];
+        statusMessage.setMessageNumber(++mMessageCount);
+        string message = statusMessage;
+        if (message.length() < 256) {
+            MQTT::Message mqttMessage;
+            char buf[256];
 
-        mqttMessage.qos = MQTT::QOS0;
-        mqttMessage.retained = false;
-        mqttMessage.dup = false;
-        mqttMessage.payload = (void *)buf;
+            mqttMessage.qos = MQTT::QOS0;
+            mqttMessage.retained = false;
+            mqttMessage.dup = false;
+            mqttMessage.payload = (void *) buf;
 
-        sprintf(buf, message.c_str(), mMessageCount);
-        printf("Sent: %s\n", buf);
-        mqttMessage.payloadlen = strlen(buf);
-        mRC = mMQTTClient->publish(mStatusTopic.c_str(), mqttMessage);
+            sprintf(buf, message.c_str(), mMessageCount);
+            printf("Sent: %s\n", buf);
+            mqttMessage.payloadlen = strlen(buf);
+            mRC = mMQTTClient->publish(mStatusTopic.c_str(), mqttMessage);
+        }
     }
 }
 

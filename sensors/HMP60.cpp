@@ -6,13 +6,13 @@ using namespace std;
 HMP60::HMP60(shared_ptr<ModbusClient> modbus) :
     mRelativeHumidity{ 0 },
     mTemperature{ 0 },
-    mHumidityRegisterLow{ modbus, mModbusAddress, RH_REGISTER_LOW, false },
-    mHumidityRegisterHigh{ modbus, mModbusAddress, RH_REGISTER_HIGH, false },
-    mTemperatureRegisterLow{ modbus, mModbusAddress, TEMPERATURE_REGISTER_LOW, false },
-    mTemperatureRegisterHigh{ modbus, mModbusAddress, TEMPERATURE_REGISTER_HIGH, false },
-    mErrorStatusRegister{ modbus, mModbusAddress, ERROR_STATUS_REGISTER, false },
-    mErrorCodeRegisterLow{ modbus, mModbusAddress, ERROR_CODE_REGISTER_LOW, false },
-    mErrorCodeRegisterHigh{ modbus, mModbusAddress, ERROR_CODE_REGISTER_HIGH, false }
+    mHumidityRegisterLow{ modbus, mModbusAddress, RH_REGISTER_LOW },
+    mHumidityRegisterHigh{ modbus, mModbusAddress, RH_REGISTER_HIGH },
+    mTemperatureRegisterLow{ modbus, mModbusAddress, TEMPERATURE_REGISTER_LOW },
+    mTemperatureRegisterHigh{ modbus, mModbusAddress, TEMPERATURE_REGISTER_HIGH },
+    mErrorStatusRegister{ modbus, mModbusAddress, ERROR_STATUS_REGISTER },
+    mErrorCodeRegisterLow{ modbus, mModbusAddress, ERROR_CODE_REGISTER_LOW },
+    mErrorCodeRegisterHigh{ modbus, mModbusAddress, ERROR_CODE_REGISTER_HIGH }
 {}
 
 float HMP60::getRelativeHumidity() { return mRelativeHumidity.f; };
