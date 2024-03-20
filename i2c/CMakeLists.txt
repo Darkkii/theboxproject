@@ -5,6 +5,7 @@ set(LIBRARY_NAME i2c)
 add_library(${LIBRARY_NAME}
         I2CBus.cpp
         I2CHandler.cpp
+        Eeprom.cpp
 )
 
 # Include directories -- No need to edit

@@ -5,7 +5,6 @@ set(LIBRARY_NAME classes)
 add_library(${LIBRARY_NAME}
         MIO12V.cpp
         PicoSW.cpp
-        Eeprom.cpp
         State.cpp
         State.h
 )
