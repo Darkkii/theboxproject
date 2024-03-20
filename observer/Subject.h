@@ -1,12 +1,13 @@
 #ifndef SUBJECT_H
 #define SUBJECT_H
 
-#include <memory>
 #include "Observer.h"
+
+#include <memory>
 
 class Subject
 {
-public:
+  public:
     virtual ~Subject() = default;
     virtual void addObserver(std::shared_ptr<Observer> observer) = 0;
     virtual void notifyObservers() = 0;

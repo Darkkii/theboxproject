@@ -3,10 +3,11 @@
 
 class SettingsMessage
 {
-private:
+  private:
     bool mMode;
     int mSetpoint;
-public:
+
+  public:
     SettingsMessage(const bool mode, const int setpoint);
     bool getAuto();
     int getSetpoint();

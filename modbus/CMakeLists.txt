@@ -17,7 +17,7 @@ target_include_directories(${LIBRARY_NAME} INTERFACE
 # Link Libraries -- Add each library that the current module needs to this list
 target_link_libraries(${LIBRARY_NAME}
         PRIVATE
-        hardware_uart
+        # hardware_uart
         observer
         PUBLIC
         uart

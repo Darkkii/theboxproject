@@ -1,16 +1,17 @@
 #ifndef MIO12V_H
 #define MIO12V_H
 
-#include <vector>
-#include <memory>
 #include "ModbusClient.h"
 #include "ModbusRegister.h"
 #include "Observer.h"
 #include "Subject.h"
 
+#include <memory>
+#include <vector>
+
 class MIO12V : public Subject
 {
-private:
+  private:
     const int mModbusAddress = 1;
     const int mFanRotationRegisterAddress = 0x0004;
     const int mFanSpeedRegisterAddress = 0x0000;
@@ -19,7 +20,7 @@ private:
     ModbusRegister mFanSpeedRegister;
     std::vector<std::shared_ptr<Observer>> mObservers;
 
-public:
+  public:
     MIO12V(std::shared_ptr<ModbusClient> modbus);
     MIO12V(const MIO12V &) = delete;
     uint16_t getFanRotation();

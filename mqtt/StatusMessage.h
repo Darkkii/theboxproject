@@ -1,11 +1,11 @@
 #ifndef STATUSMESSAGE_H
 #define STATUSMESSAGE_H
 
-#include "nlohmann/json.hpp"
+#include "nlohmann/json.hpp" // IWYU pragma: keep
 
 class StatusMessage
 {
-private:
+  private:
     int mMessageNumber;
     int mSpeed;
     int mSetpoint;
@@ -16,7 +16,8 @@ private:
     int mRelativeHumidity;
     int mTemperature;
     nlohmann::ordered_json mJSONObject;
-public:
+
+  public:
     StatusMessage(int speed,
                   int setpoint,
                   int pressure,

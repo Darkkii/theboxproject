@@ -17,16 +17,18 @@
 #include <iostream>
 #include <memory>
 
+using namespace std;
+
 #define UART_NR 1
 #define UART_TX_PIN 4
 #define UART_RX_PIN 5
 #define MODBUS_BAUD_RATE 9600
-#define DEFAULT_NETWORK_ID "SmartIotMQTT"
+#define DEFAULT_NETWORK_ID "KME662"
 #define DEFAULT_NETWORK_PW "SmartIot"
 #define DEFAULT_BROKER_IP "192.168.1.10"
 
-// #define STOP_BITS 1 // for simulator
-#define STOP_BITS 2 // for real system
+#define STOP_BITS 1 // for simulator
+// #define STOP_BITS 2 // for real system
 
 void messageHandler(MQTT::MessageData &md);
 
