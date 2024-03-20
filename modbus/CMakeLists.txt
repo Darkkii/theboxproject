@@ -5,7 +5,9 @@ set(LIBRARY_NAME modbus)
 add_library(${LIBRARY_NAME}
         ModbusClient.cpp
         ModbusRegister.cpp
-        nanomodbus.c)
+        nanomodbus.c
+        MIO12V.cpp
+)
 
 # Include directories -- No need to edit
 target_include_directories(${LIBRARY_NAME} INTERFACE
@@ -16,6 +18,7 @@ target_include_directories(${LIBRARY_NAME} INTERFACE
 target_link_libraries(${LIBRARY_NAME}
         PRIVATE
         hardware_uart
+        observer
         PUBLIC
         uart
 )
