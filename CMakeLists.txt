@@ -84,7 +84,7 @@ add_subdirectory(mqtt)
 add_subdirectory(uart)
 add_subdirectory(sensors)
 add_subdirectory(i2c)
-add_subdirectory(classes)
+add_subdirectory(misc)
 add_subdirectory(observer)
 
 # # JSON parser
@@ -103,7 +103,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         modbus
         mqtt
         uart
-        classes
+        misc
         sensors
         i2c
         nlohmann_json::nlohmann_json
