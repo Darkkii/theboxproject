@@ -23,17 +23,17 @@ using namespace std;
 #define UART_TX_PIN 4
 #define UART_RX_PIN 5
 #define MODBUS_BAUD_RATE 9600
-#define DEFAULT_NETWORK_ID "KME662"
-#define DEFAULT_NETWORK_PW "SmartIot"
-#define DEFAULT_BROKER_IP "192.168.1.10"
+#define DEFAULT_NETWORK_ID "KME662"      // Default Wi-Fi SSID
+#define DEFAULT_NETWORK_PW "SmartIot"    // Default Wi-Fi password
+#define DEFAULT_BROKER_IP "192.168.1.10" // Default MQTT Broker IP address
 
 #define STOP_BITS 1 // for simulator
 // #define STOP_BITS 2 // for real system
 
 void messageHandler(MQTT::MessageData &md);
 
-// static global pointer to allow mqtt callback function to access public member
-// functions
+// Global shared pointer to allow MQTT callback function access to member
+// functions.
 static shared_ptr<MQTTHandler> mqttHandler;
 
 int main()
@@ -42,8 +42,9 @@ int main()
     stdio_init_all();
 
     printf("\nBoot\n");
-    mqttHandler = make_shared<MQTTHandler>(messageHandler);
 
+    // Initialize all classes, add observer/subject relations.
+    mqttHandler = make_shared<MQTTHandler>(messageHandler);
     auto i2cHandler{ make_shared<I2CHandler>() };
     auto uart{ std::make_shared<PicoUart>(
         UART_NR, UART_TX_PIN, UART_RX_PIN, MODBUS_BAUD_RATE, STOP_BITS) };
@@ -66,6 +67,8 @@ int main()
     PicoSW picoSW(true, true, true, true, true);
     PicoSW_event swEvent;
 
+    // Try to connect to the saved network settings, in case of failure, connect
+    // to default network.
     if (!state->ConnectMQTT(eeprom->read(EEPROM_REG_NETWORK_ID),
                             eeprom->read(EEPROM_REG_NETWORK_PW),
                             eeprom->read(EEPROM_REG_BROKER_IP)))
@@ -120,6 +123,7 @@ int main()
     }
 }
 
+// Callback function to handle received MQTT messages.
 void messageHandler(MQTT::MessageData &md)
 {
     MQTT::Message &message = md.message;

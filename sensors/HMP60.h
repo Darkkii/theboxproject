@@ -7,6 +7,7 @@
 
 #include <memory>
 
+// Handles the HMP60 humidity sensor.
 class HMP60
 {
   private:

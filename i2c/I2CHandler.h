@@ -4,6 +4,7 @@
 #include "I2CBus.h"
 #include "hardware/i2c.h"
 
+// Holds both I2C buses and handles their creation.
 class I2CHandler
 {
   private:

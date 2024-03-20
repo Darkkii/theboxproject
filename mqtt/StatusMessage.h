@@ -3,6 +3,7 @@
 
 #include "nlohmann/json.hpp" // IWYU pragma: keep
 
+// Handles the creation of a JSON object from status data.
 class StatusMessage
 {
   private:

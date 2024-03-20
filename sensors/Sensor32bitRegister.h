@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+// Used for type punning the sensor data from integer to float.
 union Sensor32bitRegister
 {
     uint32_t u;

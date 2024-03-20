@@ -7,11 +7,13 @@ Eeprom::Eeprom(std::shared_ptr<I2CHandler> i2cHandler) :
     mI2CHandler{ i2cHandler }
 {}
 
+// Write data to EEPROM.
 void Eeprom::write(const uint16_t readWriteAddress,
                    const std::string &writeBuffer)
 {
     mSetReadWriteAddress(readWriteAddress);
-    size_t totalBytesToWrite = writeBuffer.length() + 3; // + 2 address bytes
+    size_t totalBytesToWrite =
+        writeBuffer.length() + 3; // + 2 address bytes and 1 null character.
     uint8_t buffer[totalBytesToWrite];
 
     for (size_t i = 0; i < totalBytesToWrite; i++)
@@ -25,7 +27,7 @@ void Eeprom::write(const uint16_t readWriteAddress,
             buffer[i] = writeBuffer.c_str()[i - 2];
         }
     }
-    buffer[totalBytesToWrite - 1] = '\0';
+    buffer[totalBytesToWrite - 1] = '\0'; // Ensure string null termination.
 
     mWaitUntilReady();
     i2c_write_blocking(mI2CHandler->getI2CBus(mI2CBusNumber),
@@ -35,6 +37,7 @@ void Eeprom::write(const uint16_t readWriteAddress,
                        false);
 }
 
+// Read data from EEPROM.
 std::string Eeprom::read(const uint16_t readWriteAddress)
 {
     char buffer[64];
@@ -54,12 +57,14 @@ std::string Eeprom::read(const uint16_t readWriteAddress)
     return std::string(buffer);
 }
 
+// Sets the current read/write address.
 void Eeprom::mSetReadWriteAddress(const uint16_t readWriteAddress)
 {
     mCurrentReadWriteAddress[0] = (uint8_t)(readWriteAddress >> 8);
     mCurrentReadWriteAddress[1] = (uint8_t)readWriteAddress;
 }
 
+// Polls EEPROM for a completed write cycle.
 void Eeprom::mWaitUntilReady()
 {
     uint8_t temp[] = { 0 };

@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 
+// Handles the MIO12V fan controller.
 class MIO12V : public Subject
 {
   private:

@@ -4,6 +4,7 @@
 #include <hardware/gpio.h>
 #include <hardware/i2c.h>
 
+// Handles the SDP600 pressure sensor.
 class SDP600
 {
   private:

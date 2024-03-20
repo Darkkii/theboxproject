@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 
+// Holds all classes and functions to connect to the Wi-Fi network
+// and to the MQTT broker.
 class MQTTHandler : public Subject
 {
   private:

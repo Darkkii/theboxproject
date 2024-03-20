@@ -3,6 +3,7 @@
 
 #include "hardware/i2c.h"
 
+// Handles an I2C bus and it's pin and speed setting.
 class I2CBus
 {
   private:

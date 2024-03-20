@@ -7,6 +7,7 @@
 
 #include <memory>
 
+// Handles the GMP252 CO2 sensor.
 class GMP252
 {
   private:

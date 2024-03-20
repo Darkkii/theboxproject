@@ -41,8 +41,6 @@ bool MQTTHandler::mMQTTConnect()
 
 bool MQTTHandler::mMQTTSubscribe(const string topic)
 {
-    // We subscribe QoS2. Messages sent with lower QoS will be delivered using
-    // the QoS they were sent with
     mRC = mMQTTClient->subscribe(topic.c_str(), MQTT::QOS0, mMessageHandler);
     if (mRC != 0)
     {

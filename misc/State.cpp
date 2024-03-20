@@ -183,7 +183,7 @@ void State::OLED_MQTTCredentials()
     mDisplay.show();
 }
 
-bool State::ConnectMQTT(string networkID, string networkPW, string BrokerIP)
+bool State::ConnectMQTT(string networkID, string networkPW, string brokerIP)
 {
     mDisplay.fill(0);
     mDisplay.text("Connecting...", 0, 0);
@@ -191,13 +191,13 @@ bool State::ConnectMQTT(string networkID, string networkPW, string BrokerIP)
     mDisplay.text(networkID, 0, 22);
     mDisplay.show();
     bool success = mMQTTHandler->connect(
-        std::move(networkID), std::move(networkPW), std::move(BrokerIP));
+        std::move(networkID), std::move(networkPW), std::move(brokerIP));
     if (success)
     {
         mDisplay.text("Success!", 0, 33);
-        mEEPROM->write(EEPROM_REG_NETWORK_ID, mNetworkID);
-        mEEPROM->write(EEPROM_REG_NETWORK_PW, mNetworkPW);
-        mEEPROM->write(EEPROM_REG_BROKER_IP, mBrokerIP);
+        mEEPROM->write(EEPROM_REG_NETWORK_ID, networkID);
+        mEEPROM->write(EEPROM_REG_NETWORK_PW, networkPW);
+        mEEPROM->write(EEPROM_REG_BROKER_IP, brokerIP);
     }
     else
     {
@@ -290,6 +290,8 @@ void State::toggleMode()
                 break;
             case brokerIP:
                 mStatusScreen = false;
+                // Hard code the IP, as using the user input value hard locks
+                // the system. (No idea why).
                 ConnectMQTT(mNetworkID, mNetworkPW, "192.168.137.1");
                 break;
         }

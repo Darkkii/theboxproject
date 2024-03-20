@@ -5,6 +5,7 @@
 
 #include <memory>
 
+// Subject class for observer pattern.
 class Subject
 {
   public:

@@ -3,6 +3,7 @@
 
 class SettingsMessage;
 
+// Observer class for observer pattern.
 class Observer
 {
   public:
