@@ -1,11 +1,11 @@
 #ifndef OBSERVER_H
 #define OBSERVER_H
 
-#include "SettingsMessage.h"
+class SettingsMessage;
 
 class Observer
 {
-public:
+  public:
     virtual ~Observer() = default;
     virtual void update() = 0;
     virtual void update(SettingsMessage sm) = 0;
