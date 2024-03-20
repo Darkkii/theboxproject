@@ -3,9 +3,10 @@
 
 #include "hardware/i2c.h"
 
+// Handles an I2C bus and it's pin and speed setting.
 class I2CBus
 {
-private:
+  private:
     i2c_inst_t *mI2C;
     uint mSDA;
     uint mSCL;
@@ -25,11 +26,10 @@ private:
         I2C_BAUDRATE_1 = 400000
     };
 
-public:
+  public:
     I2CBus(uint i2cNumber);
     I2CBus(I2CBus &) = delete;
     operator i2c_inst_t *();
 };
-
 
 #endif /* I2CBUS_H */

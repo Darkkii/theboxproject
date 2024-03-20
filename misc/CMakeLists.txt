@@ -1,11 +1,9 @@
 # Library name
-set(LIBRARY_NAME classes)
+set(LIBRARY_NAME misc)
 
 # Library sources -- Add each .cpp or .c file from the folder here
 add_library(${LIBRARY_NAME}
-        MIO12V.cpp
         PicoSW.cpp
-        Eeprom.cpp
         State.cpp
         State.h
 )

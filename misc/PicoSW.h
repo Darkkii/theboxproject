@@ -1,16 +1,16 @@
 #ifndef PICO_MODBUS_PICOSW_H
 #define PICO_MODBUS_PICOSW_H
 
-#include <cstdio>
+#include "pico/types.h"
+
 #include <queue>
-#include <tuple>
-#include "pico/stdlib.h"
 
 #define PRESS_DEBOUNCE_DELAY_US 100000
 
 using namespace std;
 
-typedef enum pico_sw_event_enum {
+typedef enum pico_sw_event_enum
+{
     NO_EVENT,
     SW_2_PRESS = 7,
     SW_1_PRESS = 8,
@@ -22,9 +22,11 @@ typedef enum pico_sw_event_enum {
 
 typedef tuple<uint, uint32_t, uint32_t> event_tuple;
 
-class PicoSW {
-private:
-    enum pico_sw_pin_enum {
+class PicoSW
+{
+  private:
+    enum pico_sw_pin_enum
+    {
         SW_2_PIN = 7,
         SW_1_PIN = 8,
         SW_0_PIN = 9,
@@ -35,7 +37,8 @@ private:
 
     uint32_t mPrev_SW_Rise;
     static queue<event_tuple> mEvents;
-public:
+
+  public:
     explicit PicoSW(bool rot_rot = false,
                     bool rot_sw = false,
                     bool sw_0 = false,
@@ -45,4 +48,4 @@ public:
     PicoSW_event getEvent();
 };
 
-#endif //PICO_MODBUS_PICOSW_H
+#endif // PICO_MODBUS_PICOSW_H

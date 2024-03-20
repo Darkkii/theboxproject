@@ -1,21 +1,17 @@
 #ifndef PICO_MODBUS_STATE_H
 #define PICO_MODBUS_STATE_H
 
-#include <vector>
-#include <memory>
-#include <iostream>
-#include <iomanip>
-
-#include "ssd1306.h"
+#include "Eeprom.h"
 #include "GMP252.h"
 #include "HMP60.h"
 #include "I2CHandler.h"
 #include "MIO12V.h"
-#include "SDP600.h"
 #include "MQTTHandler.h"
-#include "StatusMessage.h"
+#include "SDP600.h"
 #include "SettingsMessage.h"
-#include "Eeprom.h"
+#include "ssd1306.h"
+
+#include <memory>
 
 #define FAN_ADJUSTMENT_LATENCY_MS 5000
 #define MIN_PRESSURE_TARGET 5
@@ -23,7 +19,7 @@
 
 class State : public Observer
 {
-private:
+  private:
     ssd1306 mDisplay;
     std::shared_ptr<GMP252> mGMP252;
     std::shared_ptr<HMP60> mHMP60;
@@ -33,18 +29,18 @@ private:
     std::shared_ptr<Eeprom> mEEPROM;
 
     bool mMode_auto;
-    bool mStatusScreen{false};
-    float mCO2{0};
-    float mTemperature{0};
-    float mRH{0};
-    uint16_t mCurrentFanSpeed{0};
+    bool mStatusScreen{ false };
+    float mCO2{ 0 };
+    float mTemperature{ 0 };
+    float mRH{ 0 };
+    uint16_t mCurrentFanSpeed{ 0 };
     uint16_t mTargetFanSpeed;
     uint16_t mInputFanSpeed;
-    int16_t mCurrentPressure{0};
+    int16_t mCurrentPressure{ 0 };
     int16_t mTargetPressure;
     int16_t mInputPressure;
 
-    absolute_time_t mFanAdjustmentTimeout_ms{make_timeout_time_ms(0)};
+    absolute_time_t mFanAdjustmentTimeout_ms{ make_timeout_time_ms(0) };
 
     std::stringstream mCO2_line;
     std::stringstream mTemp_line;
@@ -60,9 +56,12 @@ private:
         brokerIP
     };
 
-    enum MQTTinput_stage_enum mMQTT_input_stage{networkID};
+    enum MQTTinput_stage_enum mMQTT_input_stage
+    {
+        networkID
+    };
 
-    char mInputChar{'0'};
+    char mInputChar{ '0' };
     std::string mNetworkID;
     std::string mNetworkPW;
     std::string mBrokerIP;
@@ -73,7 +72,8 @@ private:
     void OLED_VentStatus();
     void OLED_MQTTCredentials();
     void updateCout();
-public:
+
+  public:
     State(const std::shared_ptr<I2CHandler> &i2cHandler,
           const std::shared_ptr<GMP252> &gmp252,
           const std::shared_ptr<HMP60> &hmp60,
@@ -93,9 +93,10 @@ public:
     void adjustInputFanSpeed(int x);
     void adjustInputPressure(int x);
     void adjustFan();
-    bool ConnectMQTT(std::string networkID, std::string networkPW, std::string BrokerIP);
+    bool ConnectMQTT(std::string networkID,
+                     std::string networkPW,
+                     std::string BrokerIP);
     void updateMQTT();
 };
 
-
-#endif //PICO_MODBUS_STATE_H
+#endif // PICO_MODBUS_STATE_H

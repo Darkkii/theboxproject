@@ -1,4 +1,5 @@
 #include "I2CBus.h"
+
 #include "hardware/gpio.h"
 
 I2CBus::I2CBus(uint i2cNumber) :

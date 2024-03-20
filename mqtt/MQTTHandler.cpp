@@ -15,10 +15,14 @@ bool MQTTHandler::mMQTTConnect()
     cString[79] = '\0';
 
     mRC = mIPStack->connect(mBrokerIP.c_str(), mBrokerPort);
-    if (mRC != 1) {
+    if (mRC != 1)
+    {
         printf("rc from TCP connect is %d\n", mRC);
     }
-    if (mRC != 0) { return false; }
+    if (mRC != 0)
+    {
+        return false;
+    }
 
     printf("MQTT connecting\n");
     mMQTTClient->setDefaultMessageHandler(mMessageHandler);
@@ -26,7 +30,8 @@ bool MQTTHandler::mMQTTConnect()
     mData.MQTTVersion = 3;
     mData.clientID.cstring = cString;
     mRC = mMQTTClient->connect(mData);
-    if (mRC != 0) {
+    if (mRC != 0)
+    {
         printf("rc from MQTT connect is %d\n", mRC);
         return false;
     }
@@ -36,9 +41,9 @@ bool MQTTHandler::mMQTTConnect()
 
 bool MQTTHandler::mMQTTSubscribe(const string topic)
 {
-    // We subscribe QoS2. Messages sent with lower QoS will be delivered using the QoS they were sent with
     mRC = mMQTTClient->subscribe(topic.c_str(), MQTT::QOS0, mMessageHandler);
-    if (mRC != 0) {
+    if (mRC != 0)
+    {
         printf("rc from MQTT subscribe is %d\n", mRC);
         return false;
     }
@@ -46,7 +51,9 @@ bool MQTTHandler::mMQTTSubscribe(const string topic)
     return true;
 }
 
-bool MQTTHandler::connect(std::string networkID, std::string networkPW, std::string brokerIP)
+bool MQTTHandler::connect(std::string networkID,
+                          std::string networkPW,
+                          std::string brokerIP)
 {
     int retry = 0;
 
@@ -79,7 +86,8 @@ bool MQTTHandler::connect(std::string networkID, std::string networkPW, std::str
     if (mIPStack->isLinkUp())
     {
         mIPLinkup = true;
-        mMQTTClient = make_shared<MQTT::Client<IPStack, Countdown, 256>>(*mIPStack);
+        mMQTTClient =
+            make_shared<MQTT::Client<IPStack, Countdown, 256>>(*mIPStack);
         mMQTTEnabled = mMQTTConnect();
 
         if (mMQTTEnabled)
@@ -101,14 +109,15 @@ void MQTTHandler::send(StatusMessage statusMessage)
     {
         statusMessage.setMessageNumber(++mMessageCount);
         string message = statusMessage;
-        if (message.length() < 256) {
+        if (message.length() < 256)
+        {
             MQTT::Message mqttMessage;
             char buf[256];
 
             mqttMessage.qos = MQTT::QOS0;
             mqttMessage.retained = false;
             mqttMessage.dup = false;
-            mqttMessage.payload = (void *) buf;
+            mqttMessage.payload = (void *)buf;
 
             sprintf(buf, message.c_str(), mMessageCount);
             printf("Sent: %s\n", buf);
@@ -123,13 +132,23 @@ void MQTTHandler::keepAlive()
     if (mMQTTEnabled)
     {
         cyw43_arch_poll(); // obsolete? - see below
-        mMQTTClient->yield(100); // socket that client uses calls cyw43_arch_poll()
+        mMQTTClient->yield(
+            100); // socket that client uses calls cyw43_arch_poll()
     }
 }
 
-void MQTTHandler::addObserver(shared_ptr<Observer> observer) { mObservers.push_back(observer); }
+void MQTTHandler::addObserver(shared_ptr<Observer> observer)
+{
+    mObservers.push_back(observer);
+}
 
-void MQTTHandler::notifyObservers() { for (auto &&observer : mObservers) { observer->update(mSettings); } }
+void MQTTHandler::notifyObservers()
+{
+    for (auto &&observer : mObservers)
+    {
+        observer->update(mSettings);
+    }
+}
 
 void MQTTHandler::setSettingsMessage(const SettingsMessage message)
 {
